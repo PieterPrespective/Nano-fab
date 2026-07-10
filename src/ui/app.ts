@@ -122,7 +122,7 @@ export function startApp(root: HTMLElement): AppDebugHooks {
   let scrollDrag: { startY: number; startScroll: number } | null = null;
   let width = 0;
   let height = 0;
-  let dirty = true;
+  let renderQueued = false;
 
   // ----- helpers ----------------------------------------------------------
 
@@ -383,12 +383,12 @@ export function startApp(root: HTMLElement): AppDebugHooks {
       ctx.globalAlpha = 1;
       if (tick.labeled) ctx.fillText(si(tick.value, 'A', 1), inner.x - 6, y);
     }
-    // x ticks: 0 … vdd
-    ctx.textAlign = 'center';
+    // x ticks: 0 … vdd (end labels align inward so nothing clips)
     ctx.textBaseline = 'top';
     for (let i = 0; i <= 4; i++) {
       const vg = (vdd * i) / 4;
       const x = inner.x + (inner.w * i) / 4;
+      ctx.textAlign = i === 0 ? 'left' : i === 4 ? 'right' : 'center';
       ctx.fillText(si(vg, 'V', 2), x, inner.y + inner.h + 8);
     }
     ctx.fillText('Vg', inner.x + inner.w / 2, r.y + r.h - 16);
@@ -432,14 +432,14 @@ export function startApp(root: HTMLElement): AppDebugHooks {
     ctx.fillStyle = theme.bad;
     ctx.fillText(`Ioff ${si(s.evaln.metrics.ioff_A, 'A')}`, ioff.x + 8, ioff.y - 2);
 
-    // Legend
+    // Legend (stacked, right-aligned)
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
     ctx.font = theme.font(11);
     ctx.fillStyle = theme.curveHigh;
     ctx.fillText(`Vds = ${si(vdd, 'V', 2)}`, inner.x + inner.w, r.y + 8);
     ctx.fillStyle = theme.curveLow;
-    ctx.fillText('Vds = 50 mV', inner.x + inner.w - 90, r.y + 8);
+    ctx.fillText('Vds = 50 mV', inner.x + inner.w, r.y + 24);
   }
 
   function renderMetrics(s: PlayState, r: Rect): void {
@@ -534,16 +534,19 @@ export function startApp(root: HTMLElement): AppDebugHooks {
     });
   }
 
-  function overlayPanel(maxW: number): Rect {
+  function overlayPanel(maxW: number, contentH: number): Rect {
     const w = Math.min(maxW, width - 32);
-    const h = Math.min(height - 64, 560);
+    const h = Math.min(height - 64, contentH);
     return { x: (width - w) / 2, y: (height - h) / 2, w, h };
   }
 
   function renderIntroOverlay(s: PlayState): void {
     ctx.fillStyle = 'rgba(4,8,16,0.82)';
     ctx.fillRect(0, 0, width, height);
-    const r = overlayPanel(620);
+    ctx.font = theme.font(15);
+    const introLines = wrapText(ctx, s.level.intro, Math.min(620, width - 32) - 40);
+    const contentH = 58 + introLines.length * 22 + 12 + s.level.targets.length * 24 + 76;
+    const r = overlayPanel(620, contentH);
     panel(r, theme.panelRaised);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
@@ -554,7 +557,7 @@ export function startApp(root: HTMLElement): AppDebugHooks {
     ctx.fillStyle = theme.textDim;
     const lines = wrapText(ctx, s.level.intro, r.w - 40);
     lines.forEach((line, i) => ctx.fillText(line, r.x + 20, r.y + 58 + i * 22));
-    const targetY = r.y + 70 + lines.length * 22;
+    const targetY = r.y + 66 + lines.length * 22;
     ctx.font = theme.font(14, 600);
     ctx.fillStyle = theme.text;
     s.level.targets.forEach((t, i) => ctx.fillText(`◦ ${t.label}`, r.x + 20, targetY + i * 24));
@@ -572,7 +575,10 @@ export function startApp(root: HTMLElement): AppDebugHooks {
   function renderResultOverlay(s: PlayState): void {
     ctx.fillStyle = 'rgba(4,8,16,0.82)';
     ctx.fillRect(0, 0, width, height);
-    const r = overlayPanel(680);
+    ctx.font = theme.font(14.5);
+    const explainLines = wrapText(ctx, s.level.explain, Math.min(680, width - 32) - 40);
+    const contentH = 82 + explainLines.length * 21 + 130;
+    const r = overlayPanel(680, contentH);
     panel(r, theme.panelRaised);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
@@ -590,7 +596,12 @@ export function startApp(root: HTMLElement): AppDebugHooks {
     lines.slice(0, maxLines).forEach((line, i) => ctx.fillText(line, r.x + 20, r.y + 82 + i * 21));
     ctx.font = theme.font(13);
     ctx.fillStyle = theme.textDim;
-    ctx.fillText(`Codex unlocked — see “${s.level.codex[0]}” for the real numbers.`, r.x + 20, r.y + r.h - 96);
+    const codexTitle = codex.find((c) => c.id === s.level.codex[0])?.title ?? s.level.codex[0];
+    ctx.fillText(
+      ellipsize(ctx, `Codex unlocked — “${codexTitle}” has the real numbers.`, r.w - 40),
+      r.x + 20,
+      r.y + r.h - 96,
+    );
     button({ x: r.x + 20, y: r.y + r.h - 60, w: 150, h: 44 }, 'Keep tuning', () => {
       s.overlayDismissed = true;
       requestRender();
@@ -619,10 +630,10 @@ export function startApp(root: HTMLElement): AppDebugHooks {
   }
 
   function requestRender(): void {
-    if (dirty) return;
-    dirty = true;
+    if (renderQueued) return;
+    renderQueued = true;
     requestAnimationFrame(() => {
-      dirty = false;
+      renderQueued = false;
       render();
     });
   }

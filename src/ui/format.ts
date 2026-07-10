@@ -17,8 +17,9 @@ const PREFIXES: Record<number, string> = {
 
 /** Round to `sig` significant digits and strip trailing zeros. */
 function mantissa(value: number, sig: number): string {
-  const s = value.toPrecision(sig);
-  return s.includes('.') ? s.replace(/\.?0+$/, '') : s;
+  // Number() round-trip: toPrecision(2) renders 700 as "7.0e+2"; we always
+  // want plain decimal notation for engineering mantissas (1…999.x).
+  return String(Number(value.toPrecision(sig)));
 }
 
 /**

@@ -11,50 +11,50 @@ PWA placeholders, sanity test (`tests/scaffold.test.ts`).
 
 ## NF1-1 — Device electrostatics *(spec: 02 §3.1–3.2, tests E1–E8)*
 
-- [ ] Red: `tests/helpers/devices.ts` reference configs; `tests/physics/device.test.ts` E1–E7.
-- [ ] Green: `DeviceParams`/`Electrostatics` types, `electrostatics()`, `effectiveWidth()`.
-- [ ] Calibrate α_ss / α_dibl until E7 windows pass; add golden fixture (E8).
-- [ ] Fidelity doc comments (59.6 mV/dec, roadmap ordering, 18 nm @ "5nm").
+- [x] Red: `tests/helpers/devices.ts` reference configs; `tests/physics/device.test.ts` E1–E7.
+- [x] Green: `DeviceParams`/`Electrostatics` types, `electrostatics()`, `effectiveWidth()`.
+- [x] Calibrate α_ss / α_dibl until E7 windows pass; add golden fixture (E8).
+- [x] Fidelity doc comments (59.6 mV/dec, roadmap ordering, 18 nm @ "5nm").
 
 ## NF1-2 — Currents & leakage *(spec: 02 §3.3–3.4, tests C1–C9)*
 
-- [ ] Red: C1–C9.
-- [ ] Green: `drainCurrent()` (EKV-flavored, overflow-safe softplus), `gateLeakage()`, `gidl()`.
-- [ ] Calibrate J0/A_g/B_g to pass the C7 crossover ("why HKMG").
+- [x] Red: C1–C9.
+- [x] Green: `drainCurrent()` (EKV-flavored, overflow-safe softplus), `gateLeakage()`, `gidl()`.
+- [x] Calibrate J0/A_g/B_g to pass the C7 crossover ("why HKMG").
 
 ## NF1-3 — Metrics & curves *(spec: 02 §3.5, tests C10, T1–T3)*
 
-- [ ] Red: C10 + trade-off tests T1–T3.
-- [ ] Green: `deviceMetrics()`, `idVgCurve()`.
-- [ ] Generate + commit all golden fixtures (`tests/fixtures/device/`).
+- [x] Red: C10 + trade-off tests T1–T3.
+- [x] Green: `deviceMetrics()`, `idVgCurve()`.
+- [x] Generate + commit all golden fixtures (`tests/fixtures/device/`).
 
 ## NF1-4 — Engine *(spec: 03 §1–2, tests L1–L5, S1–S2, P1–P3)*
 
-- [ ] Red: level validation, scoring, progress suites (fake `ProgressStore`).
-- [ ] Green: `engine/levels.ts`, `engine/scoring.ts`, `engine/progress.ts`.
+- [x] Red: level validation, scoring, progress suites (fake `ProgressStore`).
+- [x] Green: `engine/levels.ts`, `engine/scoring.ts`, `engine/progress.ts`.
 
 ## NF1-5 — Levels *(spec: 03 §4, test S3)*
 
-- [ ] Red: S3 harness — every `src/levels/*.json` must parse, be solvable by
+- [x] Red: S3 harness — every `src/levels/*.json` must parse, be solvable by
       its `solutions.json` sidecar, and score 0 stars at `init` values.
-- [ ] Green: author `l1-01.json` … `l1-06.json` + solutions + `codex.json`;
+- [x] Green: author `l1-01.json` … `l1-06.json` + solutions + `codex.json`;
       tune targets until S3 passes with comfortable margins.
-- [ ] Explain-text review: each level cites its real anchor (fidelity rule).
+- [x] Explain-text review: each level cites its real anchor (fidelity rule).
 
 ## NF1-6 — UI *(spec: 04, pure-helper tests)*
 
-- [ ] Red: `format`, `plot` (ticks/project), `controls` (slider round-trip),
+- [x] Red: `format`, `plot` (ticks/project), `controls` (slider round-trip),
       `layout` (touch-target property test).
-- [ ] Green: pure helpers, then canvas glue: level select → play screen →
+- [x] Green: pure helpers, then canvas glue: level select → play screen →
       result overlay → codex; wire recompute-on-drag.
-- [ ] Desktop smoke: play all 6 levels start to finish.
+- [x] Desktop smoke: play all 6 levels start to finish.
 
 ## NF1-7 — Offline PWA *(spec: 05 §2)*
 
-- [ ] Red: `tests/pwa/precache.test.ts` against a fixture dist tree.
-- [ ] Green: `scripts/inject-sw-precache.mjs`, real `sw.js` (versioned
+- [x] Red: `tests/pwa/precache.test.ts` against a fixture dist tree.
+- [x] Green: `scripts/inject-sw-precache.mjs`, real `sw.js` (versioned
       cache-first), manifest icons; `npm run build` wires the injection.
-- [ ] DevTools offline pass (05 §3 desktop checklist).
+- [x] DevTools offline pass (05 §3 desktop checklist).
 
 ## NF1-8 — Deploy & release QA *(spec: 05 §3, 04 §4)*
 
