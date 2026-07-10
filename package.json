@@ -1,0 +1,21 @@
+{
+  "name": "nanofab",
+  "private": true,
+  "version": "0.1.0",
+  "description": "NanoFab — a physics-faithful chip-design puzzle/sandbox game. Offline PWA, vanilla TypeScript + Vite + Canvas/WebGL.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "^5.5.0",
+    "vite": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

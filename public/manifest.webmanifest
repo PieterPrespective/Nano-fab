@@ -1,0 +1,12 @@
+{
+  "name": "NanoFab",
+  "short_name": "NanoFab",
+  "description": "A physics-faithful chip-design puzzle/sandbox game.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "icons": []
+}
