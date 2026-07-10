@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "l1-01",
+  "layer": 1,
+  "title": "Make it switch",
+  "intro": "Welcome to the fab. This planar transistor's gate length has been shrunk so hard it barely turns off — the drain is stealing control of the channel. Drag the gate length and watch the Id–Vg curve until the device actually switches: at least 10,000× more current ON than OFF.",
+  "explain": "You just met short-channel effects. Below ~30 nm, a planar gate loses electrostatic control: the off-current floor rises exponentially and the on/off ratio collapses. Real logic devices target Ion/Ioff of 10⁴–10⁶. And a fun fact about names: at the real \"5nm\" node the gate length is ~18 nm (IRDS 2021) — node names stopped meaning physical dimensions around 2011. You needed a much longer gate than the marketing implies.",
+  "controls": {
+    "gateLength_m": { "min": 12e-9, "max": 60e-9, "init": 12e-9, "scale": "log" }
+  },
+  "fixed": {
+    "arch": "planar",
+    "eot_m": 1e-9,
+    "bodyThickness_m": 6e-9,
+    "sheetWidth_m": 25e-9,
+    "vdd_V": 0.7,
+    "vth0_V": 0.25,
+    "temperature_K": 300
+  },
+  "targets": [
+    { "metric": "ionOverIoff", "op": ">=", "value": 1e4, "label": "Ion/Ioff ≥ 10⁴" },
+    { "metric": "ion_A", "op": ">=", "value": 4e-6, "label": "Ion ≥ 4 µA" }
+  ],
+  "stars": { "metric": "ionOverIoff", "direction": "max", "two": 3e4, "three": 7e4 },
+  "codex": ["node-names-are-marketing"]
+}

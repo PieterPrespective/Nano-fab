@@ -1,0 +1,58 @@
+[
+  {
+    "id": "node-names-are-marketing",
+    "title": "\"5nm\" is a name, not a length",
+    "body": "Process node names decoupled from physical dimensions around 2011 (Intel's 22 nm FinFET). Per the IEEE IRDS 2021 roadmap, the \"5nm\" node actually has a ~18 nm gate length, ~51 nm contacted gate pitch, and ~30 nm tightest metal pitch. The two numbers that really set logic density are contacted gate pitch (horizontal) and cell height (vertical). Nothing on a \"5nm\" chip is 5 nm.",
+    "realNumbers": [
+      "\"5nm\" node gate length: ~18 nm (IRDS 2021)",
+      "\"5nm\" contacted gate pitch: ~51 nm",
+      "\"5nm\" tightest metal pitch: ~30 nm"
+    ]
+  },
+  {
+    "id": "gate-tunneling",
+    "title": "Quantum tunneling through the gate",
+    "body": "When the gate oxide gets thin enough, electrons tunnel straight through it — a purely quantum leak that grows exponentially, roughly 10× for every ~0.25 nm of SiO₂-equivalent thinning. By the mid-2000s gate leakage rivaled switching power. The fix (45 nm node, 2007): high-k metal gate — a hafnium-based dielectric that is physically thick (blocking tunneling) but electrically thin (keeping control). NanoFab's model uses a calibrated exponential; real tunneling also depends on barrier height and bias.",
+    "realNumbers": [
+      "HKMG introduced at the 45 nm node (2007)",
+      "Direct tunneling: ~10× current per ~0.25 nm oxide thinning (order of magnitude)"
+    ]
+  },
+  {
+    "id": "boltzmann-limit",
+    "title": "The 60 mV/decade Boltzmann limit",
+    "body": "A MOSFET's subthreshold current comes from carriers in the thermal Maxwell-Boltzmann tail hopping the source barrier. That statistics sets a floor on subthreshold swing: kT/q·ln(10) ≈ 59.6 mV per decade at 300 K — no geometry can beat it, only colder temperatures or different physics (tunnel FETs, negative-capacitance FETs). This floor is why supply voltage stopped scaling and why leakage became a first-order design constraint.",
+    "realNumbers": [
+      "Boltzmann limit: kT/q·ln10 ≈ 59.6 mV/dec at 300 K",
+      "Good production devices reach ~65–75 mV/dec; the ideal 60 is asymptotic"
+    ]
+  },
+  {
+    "id": "dibl",
+    "title": "DIBL — drain-induced barrier lowering",
+    "body": "In a short channel, the drain's electric field reaches the source barrier and lowers it, stealing threshold control from the gate. Measured as threshold shift per volt of drain bias (mV/V), DIBL and degraded subthreshold swing are the two headline short-channel effects. The industry's answer was geometric: wrap the gate around more of the channel — FinFET (3 sides, 22 nm, 2011), then gate-all-around nanosheets (4 sides, 3 nm-class, 2022+), with forksheet and CFET on the roadmap.",
+    "realNumbers": [
+      "Healthy modern device: DIBL of a few tens of mV/V",
+      "FinFET production debut: Intel 22 nm (2011)",
+      "GAA nanosheet production debut: Samsung 3 nm (2022)"
+    ]
+  },
+  {
+    "id": "gaa-stacking",
+    "title": "Nanosheets: drive current goes vertical",
+    "body": "A gate-all-around device stacks several thin silicon sheets, each fully wrapped by the gate and each a parallel channel. Effective electrical width = sheets × perimeter, so drive current scales with the stack height rather than the wafer footprint — real 3/2 nm-class devices stack 3–4 nanosheets. Designers also gain a continuous knob FinFETs never had: sheet WIDTH can be tuned per cell for power vs. performance.",
+    "realNumbers": [
+      "Production GAA stacks: 3–4 nanosheets",
+      "Full-perimeter gate wrap ⇒ best electrostatic control of any planar-compatible geometry"
+    ]
+  },
+  {
+    "id": "dark-silicon",
+    "title": "Dark silicon and the power wall",
+    "body": "Dennard scaling promised constant power density as transistors shrank; it broke down around 2005–2007 when threshold and supply voltages could no longer drop without exponential leakage. Since then, cooling limits mean a growing fraction of a chip must stay switched off at any moment — 'dark silicon'. Esmaeilzadeh et al.'s landmark ISCA 2011 study projected over 50% dark at the 8 nm node. It is the reason mobile chips juggle big/little cores and race-to-idle.",
+    "realNumbers": [
+      "Dennard scaling breakdown: ~2005–2007",
+      "Projected dark silicon at 8 nm: >50% (Esmaeilzadeh et al., ISCA 2011)"
+    ]
+  }
+]

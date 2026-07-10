@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "l1-02",
+  "layer": 1,
+  "title": "The thin-oxide trap",
+  "intro": "A thinner gate oxide grips the channel harder — better subthreshold slope, less drain mischief. So thin it to the limit, right? Careful: below ~0.8 nm of equivalent oxide, electrons quantum-tunnel straight through the gate. Find the oxide thickness that keeps BOTH leakage paths quiet.",
+  "explain": "You rediscovered why high-k metal gate (HKMG) happened at the 45 nm node. Gate direct tunneling grows roughly 10× for every 0.25 nm of SiO₂-equivalent thinning — a hard exponential wall. High-k dielectrics restored a small EQUIVALENT thickness while keeping the physical barrier thick enough to block tunneling. In this simplified model you can only trade one leak against the other; real engineers changed the material instead.",
+  "controls": {
+    "eot_m": { "min": 0.6e-9, "max": 2e-9, "init": 2e-9, "scale": "linear" }
+  },
+  "fixed": {
+    "arch": "finfet",
+    "gateLength_m": 20e-9,
+    "bodyThickness_m": 6e-9,
+    "sheetWidth_m": 25e-9,
+    "vdd_V": 0.7,
+    "vth0_V": 0.25,
+    "temperature_K": 300
+  },
+  "targets": [
+    { "metric": "ion_A", "op": ">=", "value": 1.7e-5, "label": "Ion ≥ 17 µA" },
+    { "metric": "leakagePower_W", "op": "<=", "value": 2e-9, "label": "Leakage power ≤ 2 nW" },
+    { "metric": "gateLeakage_A", "op": "<=", "value": 1e-10, "label": "Gate leakage ≤ 0.1 nA" }
+  ],
+  "stars": { "metric": "leakagePower_W", "direction": "min", "two": 1.5e-9, "three": 1e-9 },
+  "codex": ["gate-tunneling"]
+}

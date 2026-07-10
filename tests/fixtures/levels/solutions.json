@@ -1,0 +1,15 @@
+{
+  "l1-01": { "gateLength_m": 45e-9 },
+  "l1-02": { "eot_m": 1e-9 },
+  "l1-03": { "gateLength_m": 40e-9, "bodyThickness_m": 5e-9 },
+  "l1-04": { "arch": "gaa", "gateLength_m": 20e-9 },
+  "l1-05": { "arch": "gaa", "nStack": 4, "sheetWidth_m": 40e-9 },
+  "l1-06": {
+    "arch": "gaa",
+    "gateLength_m": 22e-9,
+    "eot_m": 1.1e-9,
+    "bodyThickness_m": 5e-9,
+    "nStack": 4,
+    "sheetWidth_m": 30e-9
+  }
+}

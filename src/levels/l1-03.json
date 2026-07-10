@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "l1-03",
+  "layer": 1,
+  "title": "The 60 mV wall",
+  "intro": "Subthreshold swing (SS) is how many millivolts of gate voltage you need for a 10× change in current — smaller is better. Your GAA device is at 77 mV/dec. Tune gate length and sheet thickness to get under 65 mV/dec. Then try to beat 59 mV/dec. Go on, try.",
+  "explain": "You hit the Boltzmann limit: kT/q·ln(10) ≈ 59.6 mV/dec at room temperature. It comes from the thermal (Maxwell-Boltzmann) tail of the carrier distribution, not from geometry — so no amount of electrostatic perfection beats it. This is why supply voltage stopped scaling, and it's the fundamental reason leakage vs. performance became a zero-sum fight. Only exotic devices (tunnel FETs, negative-capacitance FETs) can go 'steep-slope' below 60.",
+  "controls": {
+    "gateLength_m": { "min": 14e-9, "max": 50e-9, "init": 16e-9, "scale": "log" },
+    "bodyThickness_m": { "min": 4e-9, "max": 10e-9, "init": 8e-9, "scale": "linear" }
+  },
+  "fixed": {
+    "arch": "gaa",
+    "nStack": 3,
+    "sheetWidth_m": 25e-9,
+    "eot_m": 0.8e-9,
+    "vdd_V": 0.7,
+    "vth0_V": 0.25,
+    "temperature_K": 300
+  },
+  "targets": [
+    { "metric": "ss_VperDec", "op": "<=", "value": 0.065, "label": "SS ≤ 65 mV/dec" },
+    { "metric": "ion_A", "op": ">=", "value": 3e-5, "label": "Ion ≥ 30 µA" }
+  ],
+  "stars": { "metric": "ss_VperDec", "direction": "min", "two": 0.062, "three": 0.0605 },
+  "codex": ["boltzmann-limit"]
+}

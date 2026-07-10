@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "l1-06",
+  "layer": 1,
+  "title": "Dark silicon budget",
+  "intro": "The full toolbox is yours: architecture, gate length, oxide, sheet geometry, stacking. The product needs 120 µA of drive at 0.7 V — but the thermal budget allows only half a nanowatt of standby leakage per device, or the chip has to power itself down. Every knob that buys speed leaks somewhere. Co-optimize.",
+  "explain": "You just fought the power wall. Dennard scaling — shrink everything, keep power density constant — broke down around 2005–2007 because threshold and supply voltage stopped scaling while leakage climbed. The result is 'dark silicon': Esmaeilzadeh et al. (ISCA 2011) projected that beyond half of a chip's transistors must sit powered off at the 8 nm node. Your best design balanced drive against leakage instead of maximizing either — exactly the trade every real logic technology makes.",
+  "controls": {
+    "arch": { "options": ["planar", "finfet", "gaa"], "init": "planar" },
+    "gateLength_m": { "min": 14e-9, "max": 40e-9, "init": 18e-9, "scale": "log" },
+    "eot_m": { "min": 0.6e-9, "max": 1.5e-9, "init": 0.9e-9, "scale": "linear" },
+    "bodyThickness_m": { "min": 4e-9, "max": 8e-9, "init": 5e-9, "scale": "linear" },
+    "nStack": { "min": 1, "max": 4, "step": 1, "init": 1 },
+    "sheetWidth_m": { "min": 10e-9, "max": 30e-9, "init": 20e-9, "scale": "linear" }
+  },
+  "fixed": {
+    "vdd_V": 0.7,
+    "vth0_V": 0.25,
+    "temperature_K": 300
+  },
+  "targets": [
+    { "metric": "ion_A", "op": ">=", "value": 1.2e-4, "label": "Ion ≥ 120 µA" },
+    { "metric": "leakagePower_W", "op": "<=", "value": 5e-10, "label": "Leakage power ≤ 0.5 nW" },
+    { "metric": "ss_VperDec", "op": "<=", "value": 0.07, "label": "SS ≤ 70 mV/dec" }
+  ],
+  "stars": { "metric": "leakagePower_W", "direction": "min", "two": 4.5e-10, "three": 4e-10 },
+  "codex": ["dark-silicon"]
+}

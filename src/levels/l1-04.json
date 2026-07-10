@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "l1-04",
+  "layer": 1,
+  "title": "Drain-induced bullying",
+  "intro": "DIBL — drain-induced barrier lowering — is the drain reaching over and yanking the threshold voltage down whenever it feels like it. At 340 mV/V, your planar device's threshold basically belongs to the drain. Get DIBL under 50 mV/V at a sub-20 nm gate. A longer gate alone won't save you this time — you'll have to change the architecture.",
+  "explain": "This single problem drove the whole transistor roadmap: planar → FinFET (Intel, 22 nm, 2011) → gate-all-around nanosheets (Samsung 3 nm, TSMC N2). Each step wraps the gate around more sides of the channel — one, three, then all four — shrinking the 'natural length' the drain field can invade. Same dimensions, different geometry: your GAA device has ~10× less DIBL than the planar one.",
+  "controls": {
+    "arch": { "options": ["planar", "finfet", "gaa"], "init": "planar" },
+    "gateLength_m": { "min": 14e-9, "max": 20e-9, "init": 16e-9, "scale": "linear" }
+  },
+  "fixed": {
+    "eot_m": 0.9e-9,
+    "bodyThickness_m": 5e-9,
+    "sheetWidth_m": 20e-9,
+    "nStack": 2,
+    "vdd_V": 0.7,
+    "vth0_V": 0.25,
+    "temperature_K": 300
+  },
+  "targets": [
+    { "metric": "dibl_VperV", "op": "<=", "value": 0.05, "label": "DIBL ≤ 50 mV/V" },
+    { "metric": "ion_A", "op": ">=", "value": 3.5e-5, "label": "Ion ≥ 35 µA" }
+  ],
+  "stars": { "metric": "dibl_VperV", "direction": "min", "two": 0.04, "three": 0.03 },
+  "codex": ["dibl"]
+}
