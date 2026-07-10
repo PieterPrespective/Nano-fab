@@ -40,5 +40,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # Ensures the Pages site is configured for workflow (Actions) deploys —
+      # switches over automatically even if the repo was set to branch deploys.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - id: deployment
         uses: actions/deploy-pages@v4
