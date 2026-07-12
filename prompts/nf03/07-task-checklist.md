@@ -66,12 +66,19 @@ scales.
 - [ ] Particle-chamber scene runtime; 4 levels + solutions + content tests;
       chapter e2e happy path.
 
-## NF3-7 — Ch2 Hills & Barriers (the re-stage)
+## NF3-7 — Ch2 Hills & Barriers (dimension ladder + the re-stage)
 
+- [ ] `physics/em.ts` gains `potentialAt`; `physics/contours.ts`
+      (marching squares/cubes; goldens: point-charge rings are circles ± tol,
+      shell spacing ∝ 1/r²; plate pair gives parallel planes).
+- [ ] Prologue levels P1–P3 (`scalar-field-gradient` node): heightmap
+      steepest-descent rolls (reuses em RK4), volume + cut-plane shells,
+      strained-Si rank-2 sidebar. Prediction fixtures for P1 sketch/P2 mark.
 - [ ] `physics/terrain.ts` (terrain from device electrostatics; ball-crowd
       sampler with seeded RNG; arrival-rate ↔ drainCurrent consistency test
       ±10%).
-- [ ] Energy-terrain scene; 6 levels re-staging l1-01…06 (v1 targets inside
+- [ ] Energy-terrain scene; 6 levels re-staging l1-01…06 plus the 2b
+      "shells around the drain" DIBL-as-geometry level (v1 targets inside
       v2 wrappers; original S3 fixtures must pass unmodified).
 - [ ] Delete v1-only shell paths once green (strangler step 3).
 

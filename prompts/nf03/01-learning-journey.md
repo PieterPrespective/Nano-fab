@@ -34,6 +34,42 @@ not discovered by confusion).
 | Springs, damping, resonance, jerk-limited motion profiles | The EUV scanner wafer stage | **No bridge needed — this IS mechanics.** 5 g accelerations, sub-nm settling, jerk vs. throughput | — (this chapter is the player's victory lap on home turf) |
 | Sandcastle building, erosion, filling, sanding | Fab process steps (deposit, etch, CMP) | Morphological intuition: conformal deposition = snowfall, anisotropic etch = sandblasting from above, CMP = sanding flat | Selectivity: chemistry lets you erode one material and not another |
 
+## 2.5 The dimension ladder (scalar fields, gradients, and where tensors actually live)
+
+Playtest follow-up surfaced a specific, very common confusion: *"potential
+being a multidim (3D?) tensor — how does it translate from 1D and 2D?"*
+The confusion conflates two independent dials, so we teach them as two
+dials, explicitly:
+
+| Dial A: **domain dimension** (how many coordinates a point has) | Dial B: **rank** (how many directions the quantity itself carries) |
+|---|---|
+| V(x) — a curve (terrain profile) | rank 0 — scalar: potential, temperature, altitude. One number per point. |
+| V(x,y) — a heightmap surface | rank 1 — vector: E = −∇V, force, velocity. One arrow per point. |
+| V(x,y,z) — a number filling a volume (drawn as equipotential shells / slices, since "height" is used up) | rank 2 — tensor: only when the material answers *differently per direction* (anisotropic permittivity ε̿, stress in strained silicon). One matrix per point. |
+
+Teaching sequence (Ch2 prologue, see `05-chapters-and-levels.md`):
+
+1. **Same quantity, more coordinates.** Start from altitude — the player
+   already reads terrain. 1D profile → 2D heightmap → 3D volume where the
+   height metaphor *runs out* and equipotential shells + the cut plane take
+   over (reusing the `cut` verb from the wafer — one gesture, two meanings,
+   deliberately).
+2. **Direction lives in the gradient, not in V.** The ball's force is always
+   "downhill": slope (1D) → steepest descent (2D) → perpendicular-to-shells
+   (3D). E = −∇V is introduced as *the downhill arrow*, never as a formula
+   first.
+3. **Rank 2 exists, and here's the one place you'll meet it.** A codex-level
+   sidebar, not a level: in strained silicon (a real mobility booster since
+   the 2000s) the material's response depends on direction — that's when a
+   quantity needs two indices. Rank is *earned* only when direction-dependent
+   response appears; potential never needs it.
+
+Payoff wired into the existing arc: **DIBL is inherently a ≥2D phenomenon**
+(the drain's field reaching *around* the barrier — invisible in a 1D
+profile), and the planar → FinFET → GAA roadmap is precisely the story of
+controlling V(x,y,z) from 1, 3, then all 4 sides. The dimensionality lesson
+isn't a detour; it's the reason the architecture roadmap exists.
+
 ## 3. Chapter arc
 
 Six chapters. Each has: an *arena* (the 3D/2.5D scene type), a *new concept*,
@@ -114,8 +150,8 @@ scoring doesn't penalize them.
 
 ## 5. Mastery model (replaces bare stars-per-level)
 
-- Concept nodes (≈ 18): `charge-force`, `field-map`, `potential-terrain`,
-  `boltzmann-tail`, `tunneling`, `superposition`, `diffraction-limit`,
+- Concept nodes (≈ 19): `charge-force`, `field-map`, `scalar-field-gradient`
+  (the dimension ladder), `potential-terrain`, `boltzmann-tail`, `tunneling`, `superposition`, `diffraction-limit`,
   `photon-shot-noise`, `rls-triangle`, `scurve-motion`, `settling`,
   `deposition`, `etch-anisotropy`, `implant`, `cmp`, `masking`, `overlay`,
   `yield`.

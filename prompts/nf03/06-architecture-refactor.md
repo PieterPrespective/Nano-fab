@@ -20,7 +20,10 @@
 
 ```
 src/physics/
-  em.ts           # charges, fields, RK4 trajectories            (Ch1)
+  em.ts           # charges, fields, potentialAt, RK4 trajectories (Ch1, Ch2-P)
+  contours.ts     # marching-squares isolines on a sampled plane;
+                  # equipotential shell extraction (marching cubes on
+                  # coarse grid) — pure, golden-tested       (Ch2 prologue, DIBL view)
   terrain.ts      # DeviceParams+bias → energy terrain; ball crowd (Ch2)
   waves.ts        # interference, 1D aerial image                (Ch3)
   stochastic.ts   # seeded Poisson exposure, LER, defect count   (Ch4)

@@ -38,6 +38,35 @@ drain current is literally the ball arrival rate. `physics/terrain.ts` maps
 `DeviceParams` + biases → terrain profile using the *existing device model's*
 electrostatics (no new physics, a new view).
 
+### Prologue: the dimension ladder (`01-learning-journey.md` §2.5)
+
+Three short levels that answer "is potential a 3D tensor?" by splitting
+*domain dimension* from *rank* before the transistor terrain appears:
+
+- **P1 — One number everywhere (1D→2D)** — a terrain *profile* extrudes into
+  a full heightmap under the player's finger. Drop balls anywhere; they roll
+  along steepest descent. *Predict (sketch):* the path a ball takes on the
+  2D landscape from a marked start — most players sketch "straight to the
+  low point" and reveal shows it curving along the gradient. Formalize: the
+  downhill arrow at every point is −∇V; V itself has no direction.
+- **P2 — When height runs out (2D→3D)** — the same potential now fills a
+  volume (a charged sphere in a box): nothing to stand on anymore.
+  Equipotential shells fade in like onion layers; the player drags the **cut
+  plane** (same `cut` verb as the wafer) through the volume and watches the
+  shells become the familiar 2D contour rings on the cut face. Probe shows
+  {V: one number, E: one arrow ⊥ to the local shell}. *Predict (mark):*
+  where on the cut face the field is strongest (shells closest together).
+- **P3 — Two dials, not one (codex sidebar level)** — a 10-second
+  interactive: rotate a slab of strained silicon under a fixed E field; the
+  response changes with direction ⇒ *that* is when a quantity needs two
+  indices (rank-2 tensor ε̿). Potential never does. *Anchor:* strain
+  engineering has boosted mobility in production since the 2000s.
+  Marked `probe: true` (insight, not stars).
+
+Mastery node: `scalar-field-gradient`. P2's cut-plane skill and shell
+reading are prerequisites the DIBL level (below) leans on: DIBL only exists
+because V is ≥ 2D — the drain's shells reach *around* the barrier.
+
 1. **Roll over the hill** — drag the hilltop down (= raise Vg), watch arrival
    rate explode. *Predict (probe level):* "half the barrier ⇒ ?× the balls"
    — reveal: it's exponential (the Boltzmann tail counted live on screen).
@@ -59,7 +88,14 @@ electrostatics (no new physics, a new view).
    (grab gate length in a mini cross-section; stack sheets by dragging copies)
    with the original targets/solutions (S3 tests carry over verbatim).
 
-Mastery nodes: `potential-terrain`, `boltzmann-tail`, `tunneling`.
+2b. **The shells around the drain** — re-uses P2's volume view on the actual
+   transistor: scrub Vds and watch the drain's equipotential shells swell and
+   reach around/under the barrier — *seeing* DIBL as geometry before scoring
+   it as mV/V. The gate-wrap fix (planar→FinFET→GAA) is then shown as the
+   gate's own shells fencing the drain's out on 1, 3, then 4 sides.
+
+Mastery nodes: `scalar-field-gradient`, `potential-terrain`,
+`boltzmann-tail`, `tunneling`.
 
 ## Ch3 — Waves & Light (arena: ripple tank → optical bench)
 
