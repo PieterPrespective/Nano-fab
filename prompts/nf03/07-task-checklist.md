@@ -7,9 +7,9 @@ scales.
 
 ## NF3-0 — De-risk spike (timeboxed: 2 sessions) ✋ gate for everything below
 
-- [ ] Throwaway branch: hand-rolled WebGL2 renderer drawing a greedy-meshed
+- [x] Hand-rolled WebGL2 renderer drawing a greedy-meshed
       fixture wafer (96×96, transistor-ish) with orbit + clip plane + scrub
-      uniform; deployed to Pages under `/spike/`.
+      uniform; deployed to Pages at `/Nano-fab/spike.html` (source: `src/spike/`, marked throwaway).
 - [ ] **On the Tab S8**: measure fps scrubbing + orbiting (Chrome & Samsung
       Internet). Record numbers in this file. Pass: ≥ 30 fps. Fail: retry at
       64×64; still failing ⇒ trigger the three.js escape hatch

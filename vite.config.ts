@@ -7,6 +7,13 @@ export default defineConfig({
   build: {
     target: 'es2022',
     outDir: 'dist',
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        // NF3-0 renderer perf spike (throwaway; see prompts/nf03/07 §NF3-0)
+        spike: 'spike.html',
+      },
+    },
   },
   test: {
     include: ['tests/**/*.test.ts'],
