@@ -8,6 +8,9 @@ real physics, real numbers, and real trade-offs.
 - **Design document:** [`prompts/nf01/reference-nanofab-design-plan.md`](prompts/nf01/reference-nanofab-design-plan.md)
 - **Phase 1 (MVP) plan:** [`prompts/nf01/`](prompts/nf01/) — Layer 1 device
   puzzle, test-driven. Start at [`00-overview.md`](prompts/nf01/00-overview.md).
+- **NF03 refactor plan:** [`prompts/nf03/`](prompts/nf03/) — from graphs to a
+  guided kinematics→EM→EUV learning journey with direct manipulation and a 3D
+  process-over-time wafer. Start at [`00-overview.md`](prompts/nf03/00-overview.md).
 - **Contributor guide:** [`CLAUDE.md`](CLAUDE.md)
 
 ## Stack
