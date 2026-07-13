@@ -1,0 +1,76 @@
+{
+  "schema": 2,
+  "id": "c1-03",
+  "chapter": 1,
+  "title": "Field hockey",
+  "intro": "No uniform field this time — just a fixed charge already sitting in the chamber, bending everything that flies past AWAY from the target. The launcher only shoots straight ahead. Place your own charges to bend the beam back and thread it in. Long-press anywhere to probe the local field.",
+  "explain": "Every charge contributes its own field and they simply add — superposition. What you just did by hand, placing charges to shape a field that steers electrons where you want them, is what the deflection plates in an implanter or the electron optics in an SEM do with electrodes. Fields are the invisible rails of every charged-particle machine.",
+  "scene": {
+    "type": "particle-chamber",
+    "setup": {
+      "charges": [
+        {
+          "x": 0.5,
+          "y": 0.55,
+          "q_nC": -3
+        }
+      ],
+      "launcher": {
+        "x": 0.1,
+        "y": 0.4,
+        "speed_ms": 10000000.0
+      },
+      "target": {
+        "x": 0.9,
+        "y": 0.55,
+        "r": 0.05
+      },
+      "placeable": {
+        "count": 2,
+        "q_nC": -3
+      },
+      "predictionShot": {
+        "vx_ms": 10000000.0,
+        "vy_ms": 0
+      }
+    }
+  },
+  "tools": [
+    "launch",
+    "place",
+    "probe"
+  ],
+  "prediction": {
+    "kind": "sketch",
+    "prompt": "Sketch how the fixed charge will bend a straight launch.",
+    "scored": true,
+    "conceptNodes": [
+      "field-map",
+      "charge-force"
+    ]
+  },
+  "targets": [
+    {
+      "metric": "hits",
+      "op": ">=",
+      "value": 1,
+      "label": "Hit the target"
+    }
+  ],
+  "stars": {
+    "metric": "shotsUsed",
+    "direction": "min",
+    "two": 4,
+    "three": 2
+  },
+  "insets": [
+    {
+      "kind": "trajectory-xy",
+      "unlockOn": "reveal"
+    }
+  ],
+  "conceptNodes": [
+    "field-map",
+    "charge-force"
+  ]
+}

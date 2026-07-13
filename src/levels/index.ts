@@ -15,5 +15,15 @@ export const rawLevels: unknown[] = Object.keys(levelModules)
   .sort()
   .map((k) => levelModules[k]!.default);
 
+const levelModulesV2 = import.meta.glob('./c[0-9]-*.json', { eager: true }) as Record<
+  string,
+  { default: unknown }
+>;
+
+/** Raw schema-v2 chapter levels, in filename order. Parse via engine/levels2. */
+export const rawLevelsV2: unknown[] = Object.keys(levelModulesV2)
+  .sort()
+  .map((k) => levelModulesV2[k]!.default);
+
 /** Raw (unvalidated) codex JSON. Parse via engine/codex. */
 export const rawCodex: unknown = codexJson;

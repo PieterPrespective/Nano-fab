@@ -98,7 +98,7 @@ export interface AppDebugHooks {
   regions(): Array<{ kind: string; rect: Rect; key?: string }>;
 }
 
-export function startApp(root: HTMLElement): AppDebugHooks {
+export function startApp(root: HTMLElement, onExit?: () => void): AppDebugHooks {
   const levels = loadLevelList(rawLevels);
   const codex: CodexEntry[] = parseCodex(rawCodex);
 
@@ -209,14 +209,19 @@ export function startApp(root: HTMLElement): AppDebugHooks {
 
   function renderSelect(): void {
     const unlocked = unlockedCount();
+    let titleX = 20;
+    if (onExit) {
+      button({ x: 16, y: 16, w: 44, h: 40 }, '‹', onExit);
+      titleX = 72;
+    }
     ctx.fillStyle = theme.text;
     ctx.font = theme.font(26, 700);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('NanoFab', 20, 18);
+    ctx.fillText('NanoFab', titleX, 18);
     ctx.font = theme.font(14);
     ctx.fillStyle = theme.textDim;
-    ctx.fillText('Layer 1 — build a transistor that actually switches', 20, 52);
+    ctx.fillText('Layer 1 — build a transistor that actually switches', titleX, 52);
 
     const codexBtn: Rect = { x: width - 110, y: 16, w: 94, h: 40 };
     button(codexBtn, 'Codex', () => {

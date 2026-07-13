@@ -1,0 +1,30 @@
+{
+  "schema": 2,
+  "id": "c1-04",
+  "chapter": 1,
+  "title": "The implanter",
+  "intro": "This is a real machine now: an aperture that absorbs anything off-axis, an accelerating column that pumps energy into whatever flies through, and a wafer strip waiting at the end. Dopants must arrive in an energy window — too slow and they stop at the surface, too fast and they bury too deep. Pull harder or softer to set the launch speed.",
+  "explain": "You just operated an ion implanter. Real ones fire dopant ions at keV to MeV energies; the implant RANGE — how deep the ion stops — is set by the arrival energy you just tuned, which is why the Chapter 6 implant step has an energy knob. The aperture is real too (beam collimation), and tilting the beam a few degrees to avoid ion channeling is standard practice.",
+  "scene": {
+    "type": "particle-chamber",
+    "setup": {
+      "regions": [{ "x0": 0.3, "y0": 0, "x1": 0.7, "y1": 0.75, "ex_Vm": -500, "ey_Vm": 0 }],
+      "launcher": { "x": 0.05, "y": 0.375, "speed_ms": 1.2e7 },
+      "target": { "x": 0.9, "y": 0.375, "r": 0.05 },
+      "obstacles": [
+        { "x0": 0.55, "y0": 0, "x1": 0.57, "y1": 0.345 },
+        { "x0": 0.55, "y0": 0.405, "x1": 0.57, "y1": 0.75 }
+      ],
+      "energyWindow": { "min_J": 5.5e-17, "max_J": 6.8e-17 },
+      "predictionShot": { "vx_ms": 8e6, "vy_ms": 0 }
+    }
+  },
+  "tools": ["launch", "probe"],
+  "targets": [
+    { "metric": "hits", "op": ">=", "value": 1, "label": "Implant in the energy window" },
+    { "metric": "landingEnergy_J", "op": ">=", "value": 5.5e-17, "label": "Energy ≥ window floor" }
+  ],
+  "stars": { "metric": "shotsUsed", "direction": "min", "two": 4, "three": 2 },
+  "insets": [{ "kind": "trajectory-xy", "unlockOn": "clear" }],
+  "conceptNodes": ["charge-force", "implant"]
+}

@@ -68,20 +68,31 @@ scales.
       e2e multi-touch helpers — with the scene runtimes (NF3-6+), where the
       objects the verbs act on first exist.
 
-## NF3-5 — Tutor & mastery
+## NF3-5 — Tutor & mastery ✅ (notebook screens land with NF3-11 polish)
 
-- [ ] `ui/tutor.ts` beat sequencing (predict→reveal gating, ghost overlay
-      persistence) — state machine tests.
-- [ ] `ui/mastery.ts` node graph, gate logic (no-dead-lock content test),
-      insight scoring; notebook data model + snapshot serialization.
+- [x] `ui/tutor.ts` beat sequencing (intro→predict→reveal→play→formalize,
+      skip-never-gates, reveal-once score freezing, ghost persistence) —
+      state-machine tests.
+- [x] `ui/mastery.ts` chapter gates: unlock via understanding (node-mastery
+      EMA ≥ 0.35) OR completion (all prev-chapter levels cleared) — both
+      paths tested.
 
 ## NF3-6 — Ch1 Motion & Charge
 
 - [x] `physics/em.ts` (Coulomb superposition, potentialAt with E=−∇V check,
       RK4; energy-conservation and exact-parabola anchor tests — the Ch1
       kinematics bridge verified to closed form).
-- [ ] Particle-chamber scene runtime; 4 levels + solutions + content tests;
-      chapter e2e happy path.
+- [x] Particle-chamber scene model (`scene/chamber.ts`, pure: setup
+      parsing, obstacle absorption, energy windows, polarity, placement
+      budget) + canvas runtime with slingshot launch, charge placement,
+      long-press field probe, prediction sketch/mark input, reveal ghosts.
+- [x] Levels c1-01…04 (projectile bridge → polarity → superposition
+      steering → the implanter with an energy window) + solver-verified
+      solutions + S3 content tests (incl. lazy-wrong-answer checks).
+- [x] Chapter shell (`ui/shell.ts`): chapter map with mastery gates,
+      per-chapter level lists, legacy device-lab hand-off (strangler).
+- [x] Chapter e2e happy path: real click-through + drag-sketch prediction,
+      clear with 3★, mastery persisted, offline reload, legacy path.
 
 ## NF3-7 — Ch2 Hills & Barriers (dimension ladder + the re-stage)
 

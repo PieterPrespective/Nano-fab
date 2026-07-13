@@ -1,0 +1,29 @@
+{
+  "schema": 2,
+  "id": "c1-02",
+  "chapter": 1,
+  "title": "Two polarities",
+  "intro": "Same chamber, same field — but now you can flip the launched particle's charge with the +/− switch. Gravity never does that: mass is always positive. Charge comes in two signs, and the SAME field pushes them opposite ways. The target sits below the launch line this time.",
+  "explain": "This is the one honest difference between the gravity analogy and electrostatics: charge has two polarities, so the same field accelerates an electron up and a positive particle down. Chip makers exploit exactly this — implanting donor (n) or acceptor (p) species into silicon is choosing which polarity of carrier a region will have. The word 'doping' starts here.",
+  "scene": {
+    "type": "particle-chamber",
+    "setup": {
+      "regions": [{ "x0": 0, "y0": 0, "x1": 1, "y1": 0.75, "ex_Vm": 0, "ey_Vm": -200 }],
+      "launcher": { "x": 0.1, "y": 0.45, "speed_ms": 1e7 },
+      "target": { "x": 0.9, "y": 0.3375, "r": 0.045 },
+      "polarityToggle": true,
+      "predictionShot": { "vx_ms": 1e7, "vy_ms": 0 }
+    }
+  },
+  "tools": ["launch", "probe"],
+  "prediction": {
+    "kind": "mark",
+    "prompt": "Mark where a straight, full-speed POSITIVE particle will land.",
+    "scored": true,
+    "conceptNodes": ["charge-force"]
+  },
+  "targets": [{ "metric": "hits", "op": ">=", "value": 1, "label": "Hit the target" }],
+  "stars": { "metric": "shotsUsed", "direction": "min", "two": 3, "three": 1 },
+  "insets": [{ "kind": "trajectory-xy", "unlockOn": "reveal" }],
+  "conceptNodes": ["charge-force"]
+}

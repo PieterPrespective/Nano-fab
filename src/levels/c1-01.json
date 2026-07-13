@@ -1,0 +1,28 @@
+{
+  "schema": 2,
+  "id": "c1-01",
+  "chapter": 1,
+  "title": "Gravity, but sideways",
+  "intro": "Welcome to the particle chamber. The blue haze is a uniform electric field filling the box — to an electron, it acts exactly like gravity acts on a thrown ball, just pointed by the field and scaled by charge-to-mass. Pull back the launcher and hit the target. You already know this physics: it is a projectile problem.",
+  "explain": "F = qE plays the role of F = mg: constant force, so the electron flies a parabola — identical kinematics to a thrown ball, with a = qE/m ≈ 3.5×10¹³ m/s² here. That absurd number is the point: an electron's charge-to-mass ratio (1.76×10¹¹ C/kg) makes fields the strongest handle on matter we have. Every CRT, oscilloscope, electron microscope, and ion implanter is this level with better engineering.",
+  "scene": {
+    "type": "particle-chamber",
+    "setup": {
+      "regions": [{ "x0": 0, "y0": 0, "x1": 1, "y1": 0.75, "ex_Vm": 0, "ey_Vm": -200 }],
+      "launcher": { "x": 0.1, "y": 0.25, "speed_ms": 1e7 },
+      "target": { "x": 0.9, "y": 0.3625, "r": 0.045 },
+      "predictionShot": { "vx_ms": 1e7, "vy_ms": 0 }
+    }
+  },
+  "tools": ["launch", "probe"],
+  "prediction": {
+    "kind": "sketch",
+    "prompt": "Sketch the path a straight, full-speed launch will take.",
+    "scored": true,
+    "conceptNodes": ["charge-force"]
+  },
+  "targets": [{ "metric": "hits", "op": ">=", "value": 1, "label": "Hit the target" }],
+  "stars": { "metric": "shotsUsed", "direction": "min", "two": 3, "three": 1 },
+  "insets": [{ "kind": "trajectory-xy", "unlockOn": "reveal" }],
+  "conceptNodes": ["charge-force"]
+}
