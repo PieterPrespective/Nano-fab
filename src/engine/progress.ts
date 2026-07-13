@@ -1,5 +1,10 @@
 /**
- * Player progress persistence (versioned, tolerant of corruption).
+ * Player progress persistence, save format v2 (NF03).
+ *
+ * v2 adds the mastery model on top of v1's per-level stars: per-concept-node
+ * mastery scores, prediction insight tracking, and notebook snapshots.
+ * v1 saves migrate in memory on load (written back only on the next real
+ * change). A save written by a NEWER version is never overwritten.
  *
  * ProgressStore abstracts localStorage so engine tests inject a Map-backed
  * fake — no DOM in the engine.
@@ -18,6 +23,16 @@ export interface LevelProgress {
 }
 
 export interface Progress {
+  version: 2;
+  levels: Record<string, LevelProgress>;
+  /** Concept-node mastery 0..1 (EMA of level stars + prediction accuracy). */
+  mastery: Record<string, number>;
+  /** Prediction insight: current streak of good predictions + lifetime total. */
+  insight: { streak: number; total: number };
+}
+
+/** The phase-1 on-disk shape, accepted for migration. */
+interface ProgressV1 {
   version: 1;
   levels: Record<string, LevelProgress>;
 }
@@ -25,13 +40,34 @@ export interface Progress {
 export const PROGRESS_KEY = 'nanofab-progress';
 
 export function freshProgress(): Progress {
-  return { version: 1, levels: {} };
+  return { version: 2, levels: {}, mastery: {}, insight: { streak: 0, total: 0 } };
+}
+
+export function migrateV1(v1: ProgressV1): Progress {
+  return { ...freshProgress(), levels: v1.levels };
+}
+
+function cleanLevels(levels: unknown): Record<string, LevelProgress> {
+  const out: Record<string, LevelProgress> = {};
+  if (typeof levels !== 'object' || levels === null) return out;
+  for (const [id, lp] of Object.entries(levels as Record<string, unknown>)) {
+    if (typeof lp !== 'object' || lp === null) continue;
+    const stars = (lp as { stars?: unknown }).stars;
+    const bestValues = (lp as { bestValues?: unknown }).bestValues;
+    if (typeof stars !== 'number' || stars < 0 || stars > 3) continue;
+    out[id] = {
+      stars: Math.floor(stars),
+      bestValues:
+        typeof bestValues === 'object' && bestValues !== null ? (bestValues as PlayerValues) : {},
+    };
+  }
+  return out;
 }
 
 /**
- * Load progress. Corrupt data ⇒ fresh start (never throws). A save written
- * by a NEWER app version is left untouched and a fresh in-memory progress is
- * returned — we must not destroy data we don't understand.
+ * Load progress. Corrupt data ⇒ fresh start (never throws); v1 ⇒ migrated;
+ * newer than v2 ⇒ fresh in-memory progress flagged readOnly so the caller
+ * must not save over data it doesn't understand.
  */
 export function loadProgress(store: ProgressStore): { progress: Progress; readOnly: boolean } {
   let raw: string | null = null;
@@ -45,25 +81,34 @@ export function loadProgress(store: ProgressStore): { progress: Progress; readOn
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null) throw new Error('not an object');
     const version = (parsed as { version?: unknown }).version;
-    if (typeof version === 'number' && version > 1) {
+    if (typeof version === 'number' && version > 2) {
       return { progress: freshProgress(), readOnly: true };
     }
-    if (version !== 1) throw new Error('unknown version');
-    const levels = (parsed as { levels?: unknown }).levels;
-    if (typeof levels !== 'object' || levels === null) throw new Error('bad levels');
-    const clean: Progress = { version: 1, levels: {} };
-    for (const [id, lp] of Object.entries(levels as Record<string, unknown>)) {
-      if (typeof lp !== 'object' || lp === null) continue;
-      const stars = (lp as { stars?: unknown }).stars;
-      const bestValues = (lp as { bestValues?: unknown }).bestValues;
-      if (typeof stars !== 'number' || stars < 0 || stars > 3) continue;
-      clean.levels[id] = {
-        stars: Math.floor(stars),
-        bestValues:
-          typeof bestValues === 'object' && bestValues !== null ? (bestValues as PlayerValues) : {},
+    if (version === 1) {
+      return {
+        progress: migrateV1({ version: 1, levels: cleanLevels((parsed as ProgressV1).levels) }),
+        readOnly: false,
       };
     }
-    return { progress: clean, readOnly: false };
+    if (version !== 2) throw new Error('unknown version');
+    const p = parsed as Partial<Progress>;
+    const mastery: Record<string, number> = {};
+    if (typeof p.mastery === 'object' && p.mastery !== null) {
+      for (const [k, v] of Object.entries(p.mastery)) {
+        if (typeof v === 'number' && v >= 0 && v <= 1) mastery[k] = v;
+      }
+    }
+    const insight =
+      typeof p.insight === 'object' &&
+      p.insight !== null &&
+      typeof p.insight.streak === 'number' &&
+      typeof p.insight.total === 'number'
+        ? { streak: p.insight.streak, total: p.insight.total }
+        : { streak: 0, total: 0 };
+    return {
+      progress: { version: 2, levels: cleanLevels(p.levels), mastery, insight },
+      readOnly: false,
+    };
   } catch {
     return { progress: freshProgress(), readOnly: false };
   }
@@ -77,7 +122,7 @@ export function saveProgress(store: ProgressStore, progress: Progress): void {
   }
 }
 
-/** Record a result immutably; keeps max stars, best values follow the max. */
+/** Record a level result immutably; keeps max stars, best values follow the max. */
 export function recordResult(
   progress: Progress,
   levelId: string,
@@ -87,10 +132,39 @@ export function recordResult(
   const prev = progress.levels[levelId];
   if (prev && prev.stars >= stars) return progress;
   return {
-    version: 1,
-    levels: {
-      ...progress.levels,
-      [levelId]: { stars, bestValues: { ...values } },
+    ...progress,
+    levels: { ...progress.levels, [levelId]: { stars, bestValues: { ...values } } },
+  };
+}
+
+/** Mastery update weight: recent evidence counts ~1/4 (slow, forgiving EMA). */
+const MASTERY_ALPHA = 0.25;
+/** A prediction scoring at or above this counts as an insight hit. */
+export const INSIGHT_THRESHOLD = 0.6;
+
+/**
+ * Record a prediction outcome: updates each exercised concept node's mastery
+ * (EMA toward the score) and the insight streak. Unscored misconception
+ * probes should not call this (they teach; they don't measure).
+ */
+export function recordPrediction(
+  progress: Progress,
+  conceptNodes: string[],
+  score: number, // 0..1 from the prediction scorer
+): Progress {
+  const s = Math.min(1, Math.max(0, score));
+  const mastery = { ...progress.mastery };
+  for (const node of conceptNodes) {
+    const prev = mastery[node] ?? 0;
+    mastery[node] = prev + MASTERY_ALPHA * (s - prev);
+  }
+  const hit = s >= INSIGHT_THRESHOLD;
+  return {
+    ...progress,
+    mastery,
+    insight: {
+      streak: hit ? progress.insight.streak + 1 : 0,
+      total: progress.insight.total + (hit ? 1 : 0),
     },
   };
 }

@@ -10,12 +10,14 @@ scales.
 - [x] Hand-rolled WebGL2 renderer drawing a greedy-meshed
       fixture wafer (96×96, transistor-ish) with orbit + clip plane + scrub
       uniform; deployed to Pages at `/Nano-fab/spike.html` (source: `src/spike/`, marked throwaway).
-- [ ] **On the Tab S8**: measure fps scrubbing + orbiting (Chrome & Samsung
-      Internet). Record numbers in this file. Pass: ≥ 30 fps. Fail: retry at
-      64×64; still failing ⇒ trigger the three.js escape hatch
-      (`03-…md` §3) before any dependent work starts.
-- [ ] Gesture feel probe: one-finger drag vs. two-finger orbit on-device;
-      confirm no mode collisions with palms.
+- [x] **On the Tab S8**: measured 2026-07-13 — **consistently > 80 fps across
+      all test cases** (64²/96²/128², scrubbing with per-frame remesh +
+      orbiting). PASS with ~3× headroom ⇒ hand-rolled renderer validated,
+      three.js escape hatch not needed. (Found & fixed en route: mobile GLSL
+      rejects uniform-array indexing by flat varyings — palette now baked
+      into vertex colors.)
+- [x] Gesture feel probe: one-finger tool strips vs. two-finger orbit tested
+      on-device during the fps runs; no mode collisions reported.
 
 ## NF3-1 — Foundations
 

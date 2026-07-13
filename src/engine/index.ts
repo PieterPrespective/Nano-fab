@@ -7,3 +7,4 @@ export * from './levels';
 export * from './scoring';
 export * from './progress';
 export * from './codex';
+export * from './levels2';
