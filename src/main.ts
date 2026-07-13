@@ -6,6 +6,9 @@
 
 import { startShell } from './ui/shell';
 
+// Tell the index.html boot beacon the module is alive.
+(window as unknown as { __nanofabBoot?: boolean }).__nanofabBoot = true;
+
 const app = document.getElementById('app');
 if (app) startShell(app);
 
