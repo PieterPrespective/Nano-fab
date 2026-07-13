@@ -9,6 +9,25 @@
 import { buildWafer, type Wafer } from './wafer';
 import { meshWafer, sectionMesh, type Mesh } from './mesh';
 
+// ---------- on-page error log (no USB debugging needed on mobile) ----------
+function showError(msg: string): void {
+  let el = document.getElementById('errlog');
+  if (!el) {
+    el = document.createElement('pre');
+    el.id = 'errlog';
+    el.style.cssText =
+      'position:fixed;left:8px;right:8px;bottom:8px;z-index:99;max-height:45%;overflow:auto;' +
+      'background:rgba(127,29,29,0.92);color:#fecaca;padding:10px 12px;border-radius:10px;' +
+      'font:12px/1.5 monospace;white-space:pre-wrap;margin:0;';
+    document.body.appendChild(el);
+  }
+  el.textContent += (el.textContent ? '\n' : '') + msg;
+}
+window.addEventListener('error', (e) =>
+  showError(`${e.message} @ ${e.filename?.split('/').pop()}:${e.lineno}`),
+);
+window.addEventListener('unhandledrejection', (e) => showError(`unhandled: ${String(e.reason)}`));
+
 // ---------- tiny mat4 ----------
 type M4 = Float32Array;
 const m4 = {
@@ -50,37 +69,28 @@ const norm3 = (a: number[]) => {
 const VS = `#version 300 es
 layout(location=0) in vec3 aPos;
 layout(location=1) in vec3 aNormal;
-layout(location=2) in float aMat;
+layout(location=2) in vec3 aColor;
 uniform mat4 uProj, uView;
-out vec3 vNormal; out vec3 vWorld; flat out int vMat;
-void main(){ vWorld=aPos; vNormal=aNormal; vMat=int(aMat+0.5);
+out vec3 vNormal; out vec3 vWorld; out vec3 vColor;
+void main(){ vWorld=aPos; vNormal=aNormal; vColor=aColor;
   gl_Position = uProj*uView*vec4(aPos,1.0); }`;
 
+// NOTE: colors arrive as a vertex attribute. The first version indexed a
+// uniform array with a flat varying int — fine on desktop ANGLE, rejected by
+// mobile GLSL compilers (not dynamically uniform) => black canvas on device.
 const FS = `#version 300 es
 precision mediump float;
-in vec3 vNormal; in vec3 vWorld; flat in int vMat;
+in vec3 vNormal; in vec3 vWorld; in vec3 vColor;
 uniform float uClipX; uniform int uIsSection;
-uniform vec3 uPalette[7];
 out vec4 outColor;
 void main(){
   if (uIsSection==0 && vWorld.x > uClipX) discard;
-  vec3 base = uPalette[vMat];
+  vec3 base = vColor;
   float light = 0.5 + 0.5*max(dot(normalize(vNormal), normalize(vec3(0.45,0.35,0.82))), 0.0);
   if (uIsSection==1) { light = 1.05; }
   else if (!gl_FrontFacing) { base *= 0.30; light = 1.0; }
   outColor = vec4(base*light, 1.0);
 }`;
-
-// material palette (index = MAT enum)
-const PALETTE = new Float32Array([
-  0, 0, 0, // air (never drawn)
-  0.42, 0.45, 0.52, // si
-  0.65, 0.78, 0.92, // sio2
-  0.95, 0.62, 0.35, // poly
-  0.98, 0.83, 0.30, // metal
-  0.55, 0.85, 0.70, // nitride/high-k
-  0.85, 0.45, 0.75, // resist
-]);
 
 function compile(gl: WebGL2RenderingContext, type: number, src: string): WebGLShader {
   const s = gl.createShader(type)!;
@@ -122,9 +132,7 @@ const U = {
   view: gl.getUniformLocation(prog, 'uView'),
   clipX: gl.getUniformLocation(prog, 'uClipX'),
   isSection: gl.getUniformLocation(prog, 'uIsSection'),
-  palette: gl.getUniformLocation(prog, 'uPalette'),
 };
-gl.uniform3fv(U.palette, PALETTE);
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.043, 0.07, 0.125, 1);
 
@@ -133,13 +141,13 @@ function makeVao(): { vao: WebGLVertexArrayObject; vbo: WebGLBuffer; count: numb
   const vbo = gl.createBuffer()!;
   gl.bindVertexArray(vao);
   gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-  const stride = 7 * 4;
+  const stride = 9 * 4;
   gl.enableVertexAttribArray(0);
   gl.vertexAttribPointer(0, 3, gl.FLOAT, false, stride, 0);
   gl.enableVertexAttribArray(1);
   gl.vertexAttribPointer(1, 3, gl.FLOAT, false, stride, 12);
   gl.enableVertexAttribArray(2);
-  gl.vertexAttribPointer(2, 1, gl.FLOAT, false, stride, 24);
+  gl.vertexAttribPointer(2, 3, gl.FLOAT, false, stride, 24);
   return { vao, vbo, count: 0 };
 }
 const waferBuf = makeVao();

@@ -2,7 +2,7 @@
  * NF3-0 SPIKE — exposed-surface mesher for the column-stack wafer.
  *
  * Emits a triangle soup of air-exposed faces (tops + walls at material/air
- * boundaries between neighboring columns), interleaved [pos3, normal3, mat1].
+ * boundaries between neighboring columns), interleaved [pos3, normal3, rgb3].
  * Interior material-material boundaries are skipped; the cross-section pass
  * draws the cut face separately. Greedy merging is deliberately NOT done —
  * the spike measures the worst-case triangle count.
@@ -10,13 +10,29 @@
 
 import { MAT, type Column, type Wafer } from './wafer';
 
+/**
+ * Material palette baked into vertex colors at mesh time. A uniform-array
+ * lookup indexed by a flat varying compiled fine on desktop ANGLE but is
+ * rejected by mobile GLSL compilers (not "dynamically uniform"), which left
+ * the canvas black on the Tab S8 — so no indexing in shaders at all.
+ */
+const PALETTE: ReadonlyArray<readonly [number, number, number]> = [
+  [0, 0, 0], // air (never drawn)
+  [0.42, 0.45, 0.52], // si
+  [0.65, 0.78, 0.92], // sio2
+  [0.95, 0.62, 0.35], // poly
+  [0.98, 0.83, 0.3], // metal
+  [0.55, 0.85, 0.7], // nitride/high-k
+  [0.85, 0.45, 0.75], // resist
+];
+
 export interface Mesh {
-  data: Float32Array; // stride 7
+  data: Float32Array; // stride 9: pos3, normal3, rgb3
   vertexCount: number;
   triangles: number;
 }
 
-const STRIDE = 7;
+const STRIDE = 9;
 
 /** z-interval boundaries of a column including implicit air gaps. */
 function breakpoints(a: Column, b: Column, zTop: number): number[] {
@@ -52,8 +68,9 @@ export function meshWafer(w: Wafer): Mesh {
     nx: number, ny: number, nz: number,
     m: number,
   ) => {
-    out.push(ax, ay, az, nx, ny, nz, m, bx, by, bz, nx, ny, nz, m, cx, cy, cz, nx, ny, nz, m);
-    out.push(ax, ay, az, nx, ny, nz, m, cx, cy, cz, nx, ny, nz, m, dx, dy, dz, nx, ny, nz, m);
+    const [r, g, b] = PALETTE[m] ?? PALETTE[0]!;
+    out.push(ax, ay, az, nx, ny, nz, r, g, b, bx, by, bz, nx, ny, nz, r, g, b, cx, cy, cz, nx, ny, nz, r, g, b);
+    out.push(ax, ay, az, nx, ny, nz, r, g, b, cx, cy, cz, nx, ny, nz, r, g, b, dx, dy, dz, nx, ny, nz, r, g, b);
   };
 
   const empty: Column = [];
@@ -134,7 +151,8 @@ function pushWall(
   isX: boolean,
 ): void {
   const n = isX ? [dir, 0, 0] : [0, dir, 0];
-  const v = (x: number, y: number, z: number) => out.push(x, y, z, n[0]!, n[1]!, n[2]!, s.m);
+  const [r, g, b] = PALETTE[s.m] ?? PALETTE[0]!;
+  const v = (x: number, y: number, z: number) => out.push(x, y, z, n[0]!, n[1]!, n[2]!, r, g, b);
   // two triangles, winding irrelevant for the spike (culling disabled)
   v(ax, ay, s.z0);
   v(bx, by, s.z0);
@@ -158,8 +176,9 @@ export function sectionMesh(w: Wafer, cx: number): Mesh {
     const y1 = y0 + pitch;
     for (const s of col) {
       // quad in plane x = cx, normal +x
-      out.push(cx, y0, s.z0, 1, 0, 0, s.m, cx, y1, s.z0, 1, 0, 0, s.m, cx, y1, s.z1, 1, 0, 0, s.m);
-      out.push(cx, y0, s.z0, 1, 0, 0, s.m, cx, y1, s.z1, 1, 0, 0, s.m, cx, y0, s.z1, 1, 0, 0, s.m);
+      const [r, g, b] = PALETTE[s.m] ?? PALETTE[0]!;
+      out.push(cx, y0, s.z0, 1, 0, 0, r, g, b, cx, y1, s.z0, 1, 0, 0, r, g, b, cx, y1, s.z1, 1, 0, 0, r, g, b);
+      out.push(cx, y0, s.z0, 1, 0, 0, r, g, b, cx, y1, s.z1, 1, 0, 0, r, g, b, cx, y0, s.z1, 1, 0, 0, r, g, b);
     }
   }
   const data = new Float32Array(out);
