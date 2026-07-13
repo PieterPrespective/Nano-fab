@@ -36,13 +36,36 @@ self.addEventListener('fetch', (event) => {
   // otherwise make precached responses unmatchable for module-script
   // requests, breaking offline exactly where it matters.
   const OPTS = { ignoreSearch: true, ignoreVary: true };
+
+  if (req.mode === 'navigate') {
+    // NETWORK-FIRST for pages: deploys and new pages appear on the next
+    // load instead of being masked by a stale cached shell (a cache-first
+    // navigation once served the old game at a brand-new URL). The cache is
+    // only the offline fallback, refreshed on every successful fetch.
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((cache) => cache.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() =>
+          caches
+            .match(req, OPTS)
+            .then((hit) => hit || caches.match('./index.html', OPTS))
+            .then((hit) => hit || Response.error()),
+        ),
+    );
+    return;
+  }
+
+  // CACHE-FIRST for subresources: hashed asset filenames are immutable, so
+  // a cache hit is always correct and instant.
   event.respondWith(
     caches.match(req, OPTS).then((hit) => {
       if (hit) return hit;
-      if (req.mode === 'navigate') {
-        // SPA shell: any navigation inside scope falls back to index.html.
-        return caches.match('./index.html', OPTS).then((shell) => shell || fetch(req));
-      }
       return fetch(req).then((res) => {
         if (res.ok) {
           const copy = res.clone();
