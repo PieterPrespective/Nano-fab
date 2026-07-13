@@ -46,20 +46,27 @@ scales.
       detection, GAA sheet counting; planar recipe within 5% of intent and
       scored end-to-end by the phase-1 device physics.
 
-## NF3-3 — Meshing & renderer
+## NF3-3 — Meshing & renderer ✅ (e2e screenshots deferred to NF3-7 shell)
 
-- [ ] `scene/mesher.ts` greedy meshing + clip capping (golden buffers,
-      watertight invariant, tri-count bounds).
-- [ ] `render3d/*`: program, palette, section shading, camera math
-      (pure parts unit-tested; visuals via e2e screenshot goldens for the 4
-      fixture wafers).
-- [ ] e2e: scrub animation frames land within pixel tolerance.
+- [x] `scene/mesher.ts` exposed-surface meshing over the SI WaferModel incl.
+      cavity ceilings/floors + separate section mesh (x/y axis); hash-based
+      golden fixtures, exact-count blank-wafer test, trench bounds, GAA
+      cavity faces, palette bake, degenerate inputs.
+- [x] `render3d/*`: palette module, pure orbit-camera math unit-tested
+      (orthonormality, clip mapping, clamps), WaferRenderer GL glue derived
+      from the >80 fps spike (dpr≤1.5 budget baked in).
+- [ ] e2e: per-scene screenshot goldens + scrub pixel tolerance — lands with
+      the first scene shell (NF3-7), which is the first page that renders.
 
-## NF3-4 — Interaction layer
+## NF3-4 — Interaction layer (pure core ✅; scene bindings land with scenes)
 
-- [ ] Tool commands + undo inversion tests for all 8 verbs.
-- [ ] Prediction scorers (sketch/mark/choose) with fixture scenes.
-- [ ] Fine-tune drawer; probe inspector; palette; e2e multi-touch helpers.
+- [x] Snapshot-based `engine/undo.ts` (immutable states make command
+      inversion trivial) — history/redo-branch/capacity tests.
+- [x] Prediction scorers `ui/predict.ts` (arclength resample + sketch/mark/
+      choose) with monotone-deviation and tolerance-band tests.
+- [ ] Per-scene tool bindings, fine-tune drawer, probe inspector, palette,
+      e2e multi-touch helpers — with the scene runtimes (NF3-6+), where the
+      objects the verbs act on first exist.
 
 ## NF3-5 — Tutor & mastery
 
@@ -70,8 +77,9 @@ scales.
 
 ## NF3-6 — Ch1 Motion & Charge
 
-- [ ] `physics/em.ts` (Coulomb superposition, RK4; energy-conservation and
-      known-parabola anchor tests).
+- [x] `physics/em.ts` (Coulomb superposition, potentialAt with E=−∇V check,
+      RK4; energy-conservation and exact-parabola anchor tests — the Ch1
+      kinematics bridge verified to closed form).
 - [ ] Particle-chamber scene runtime; 4 levels + solutions + content tests;
       chapter e2e happy path.
 
