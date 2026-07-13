@@ -186,6 +186,7 @@ export function mountChamberScene(
     animHead = 0;
     animate();
     refreshEval();
+    renderOverlays(); // retires the first-launch coaching bar
   }
 
   function animate(): void {
@@ -249,7 +250,7 @@ export function mountChamberScene(
       return;
     }
     const launcherS = toScreen(setup.launcher.x, setup.launcher.y);
-    if (g.kind === 'drag-start' && Math.hypot(g.startX - launcherS.x, g.startY - launcherS.y) < 56) {
+    if (g.kind === 'drag-start' && Math.hypot(g.startX - launcherS.x, g.startY - launcherS.y) < 90) {
       pull = toWorld(g.x, g.y);
       draw();
     } else if (g.kind === 'drag-move' && pull) {
@@ -282,18 +283,36 @@ export function mountChamberScene(
       );
       (overlay.querySelector('#ov-start') as HTMLElement).onclick = () => hooks.dismissIntro();
     } else if (tutor.beat === 'predict') {
+      const kind = level.prediction?.kind;
+      const how = kind === 'sketch' ? 'Draw it with your finger on the chamber' : 'Tap the spot on the chamber';
       overlay.innerHTML = `
-        <div style="position:absolute;left:12px;right:12px;top:8px;background:rgba(20,29,48,0.92);border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:center">
-          <div style="flex:1;font-size:14px"><b>Predict:</b> ${esc(level.prediction?.prompt ?? '')}</div>
-          <button id="ov-skip" style="${btnCss()}">Skip</button>
-          <button id="ov-commit" style="${btnCss(true)}">Lock it in</button>
+        <div style="position:absolute;left:12px;right:12px;top:8px;background:rgba(20,29,48,0.95);border:1px solid ${theme.accent};border-radius:12px;padding:12px 14px">
+          <div style="font-size:15px;margin-bottom:4px"><b style="color:${theme.accent}">PREDICT FIRST:</b> ${esc(level.prediction?.prompt ?? '')}</div>
+          <div style="font-size:13px;color:${theme.textDim};margin-bottom:10px">${how}, then press <b>Lock it in</b> — the launch comes after.</div>
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button id="ov-clear" style="${btnCss()}">Clear</button>
+            <button id="ov-skip" style="${btnCss()}">Skip</button>
+            <button id="ov-commit" style="${btnCss(true)};padding:10px 22px">Lock it in ›</button>
+          </div>
         </div>`;
+      (overlay.querySelector('#ov-clear') as HTMLElement).onclick = () => {
+        sketchPts = [];
+        markPt = null;
+        draw();
+      };
       (overlay.querySelector('#ov-skip') as HTMLElement).onclick = () => {
         tutor = skipPrediction(tutor);
         renderOverlays();
         draw();
       };
       (overlay.querySelector('#ov-commit') as HTMLElement).onclick = () => hooks.commitPrediction();
+    } else if (tutor.beat === 'play' && state.shots.length === 0) {
+      // first-launch coaching: the launcher IS the slingshot
+      overlay.innerHTML = `
+        <div style="position:absolute;left:12px;right:12px;bottom:12px;background:rgba(20,29,48,0.92);border-radius:12px;padding:12px 16px;text-align:center;font-size:14px;pointer-events:none">
+          <b style="color:${theme.accent}">Now fire:</b> put your finger on the glowing launcher,
+          <b>drag in the direction you want to shoot</b>, and release.${setup.energyWindow ? ' Pull further for a faster launch.' : ''}
+        </div>`;
     } else if (tutor.beat === 'formalize' && !formalizeDismissed) {
       const insight =
         tutor.prediction?.score !== undefined
@@ -373,8 +392,17 @@ export function mountChamberScene(
     for (const c of [...setup.charges, ...state.placed]) {
       drawCharge(toScreen(c.x_m, c.y_m), c.q_C > 0);
     }
-    // launcher
+    // launcher (pulsing halo until the first shot makes it obvious)
     const l = toScreen(setup.launcher.x, setup.launcher.y);
+    if (state.shots.length === 0 && (tutor.beat === 'play' || tutor.beat === 'predict')) {
+      const pulse = 18 + 7 * Math.sin(performance.now() / 280);
+      ctx.strokeStyle = 'rgba(76,201,240,0.55)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(l.x, l.y, pulse, 0, Math.PI * 2);
+      ctx.stroke();
+      if (tutor.beat === 'play') requestAnimationFrame(() => draw());
+    }
     ctx.fillStyle = theme.accent;
     ctx.beginPath();
     ctx.arc(l.x, l.y, 12, 0, Math.PI * 2);
@@ -384,17 +412,31 @@ export function mountChamberScene(
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(state.polarity === 1 ? '−' : '+', l.x, l.y + 0.5);
-    // pull rubber band
+    // pull rubber band + projected aim arrow
     if (pull) {
       const p = toScreen(pull.x, pull.y);
       ctx.strokeStyle = theme.accentWarm;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
       ctx.setLineDash([6, 5]);
       ctx.beginPath();
       ctx.moveTo(l.x, l.y);
       ctx.lineTo(p.x, p.y);
       ctx.stroke();
       ctx.setLineDash([]);
+      const dx = p.x - l.x;
+      const dy = p.y - l.y;
+      const len = Math.hypot(dx, dy);
+      if (len > 8) {
+        const hx = p.x + (dx / len) * 18;
+        const hy = p.y + (dy / len) * 18;
+        const a = Math.atan2(dy, dx);
+        ctx.fillStyle = theme.accentWarm;
+        ctx.beginPath();
+        ctx.moveTo(hx, hy);
+        ctx.lineTo(hx - 12 * Math.cos(a - 0.45), hy - 12 * Math.sin(a - 0.45));
+        ctx.lineTo(hx - 12 * Math.cos(a + 0.45), hy - 12 * Math.sin(a + 0.45));
+        ctx.fill();
+      }
     }
     // past shots
     state.shots.forEach((shot, idx) => {
