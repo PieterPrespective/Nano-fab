@@ -40,8 +40,16 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      # Ensures the Pages site is configured for workflow (Actions) deploys —
-      # switches over automatically even if the repo was set to branch deploys.
+      # configure-pages does NOT flip an already-existing branch-configured
+      # site to workflow mode, so the legacy Jekyll build kept racing (and
+      # beating) this deploy with the raw repo source. Force it via the API.
+      - name: Force Pages source to GitHub Actions
+        run: |
+          curl -sf -X PUT \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages" \
+            -d '{"build_type":"workflow"}'
       - uses: actions/configure-pages@v5
         with:
           enablement: true

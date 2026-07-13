@@ -35,6 +35,52 @@
   </head>
   <body>
     <div id="spike"></div>
+    <script>
+      // Module-independent boot beacon: if the ES module fails to load or
+      // parse, this classic script still reports WHY, on-screen. (A failed
+      // module cannot report its own death — learned the hard way.)
+      (function () {
+        function log(msg) {
+          var el = document.getElementById('bootlog');
+          if (!el) {
+            el = document.createElement('pre');
+            el.id = 'bootlog';
+            el.style.cssText =
+              'position:fixed;left:8px;right:8px;bottom:8px;z-index:99;max-height:45%;overflow:auto;' +
+              'background:rgba(127,29,29,0.94);color:#fecaca;padding:10px 12px;border-radius:10px;' +
+              'font:12px/1.5 monospace;white-space:pre-wrap;margin:0;';
+            document.body.appendChild(el);
+          }
+          el.textContent += msg + '\n';
+        }
+        window.addEventListener('error', function (e) {
+          log((e.message || 'resource load error') + ' @ ' + (e.filename || (e.target && e.target.src) || '?') + ':' + (e.lineno || ''));
+        }, true);
+        window.addEventListener('unhandledrejection', function (e) { log('unhandled: ' + e.reason); });
+        setTimeout(function () {
+          if (window.__spikeBoot) return; // module alive — stay silent
+          log('spike module did not start within 4 s — diagnostics:');
+          log('url: ' + location.href);
+          log('ua: ' + navigator.userAgent);
+          try {
+            var c = document.createElement('canvas');
+            log('webgl2 available: ' + !!c.getContext('webgl2'));
+          } catch (err) { log('webgl2 check failed: ' + err); }
+          log('sw controller: ' + (navigator.serviceWorker && navigator.serviceWorker.controller ? navigator.serviceWorker.controller.scriptURL : 'none'));
+          var s = document.querySelector('script[type=module][src]');
+          var src = s && s.getAttribute('src');
+          log('module src: ' + src);
+          if (src) {
+            fetch(src, { cache: 'no-store' }).then(function (r) {
+              log('module fetch: HTTP ' + r.status + ' · content-type=' + r.headers.get('content-type'));
+              return r.text();
+            }).then(function (t) {
+              log('module head: ' + t.slice(0, 100).replace(/\s+/g, ' '));
+            }).catch(function (err) { log('module fetch failed: ' + err); });
+          }
+        }, 4000);
+      })();
+    </script>
     <script type="module" src="/src/spike/main.ts"></script>
   </body>
 </html>

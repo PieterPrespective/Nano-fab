@@ -9,6 +9,11 @@
 import { buildWafer, type Wafer } from './wafer';
 import { meshWafer, sectionMesh, type Mesh } from './mesh';
 
+declare const __BUILD_SHA__: string; // injected by vite define
+
+// Tell the HTML boot beacon the module is alive (it reports if we never run).
+(window as unknown as { __spikeBoot?: boolean }).__spikeBoot = true;
+
 // ---------- on-page error log (no USB debugging needed on mobile) ----------
 function showError(msg: string): void {
   let el = document.getElementById('errlog');
@@ -232,7 +237,7 @@ function draw(): void {
     frames = 0;
     fpsWindowStart = now;
     stats.textContent =
-      `${fps.toFixed(0)} fps · ${(triCount / 1000).toFixed(1)}k tris · remesh ${remeshMs.toFixed(1)} ms · ${gridN}²`;
+      `${fps.toFixed(0)} fps · ${(triCount / 1000).toFixed(1)}k tris · remesh ${remeshMs.toFixed(1)} ms · ${gridN}² · ${__BUILD_SHA__}`;
   }
   const ph = Math.min(4, Math.floor(t * 5));
   phaseLabel.textContent = t >= 1 ? 'done' : `${PHASES[ph]}`;
