@@ -41,15 +41,18 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       # configure-pages does NOT flip an already-existing branch-configured
-      # site to workflow mode, so the legacy Jekyll build kept racing (and
-      # beating) this deploy with the raw repo source. Force it via the API.
-      - name: Force Pages source to GitHub Actions
+      # site to workflow mode, so a legacy Jekyll build races (and can beat)
+      # this deploy with the raw repo source. Changing build_type via the API
+      # needs repo-admin rights the workflow token lacks — best-effort here;
+      # the real fix is Settings → Pages → Source = "GitHub Actions".
+      - name: Force Pages source to GitHub Actions (best effort)
         run: |
           curl -sf -X PUT \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/${{ github.repository }}/pages" \
-            -d '{"build_type":"workflow"}'
+            -d '{"build_type":"workflow"}' \
+          || echo "::warning::Could not set Pages build_type=workflow (needs admin). Set Settings→Pages→Source to 'GitHub Actions' to stop legacy branch builds racing this deploy."
       - uses: actions/configure-pages@v5
         with:
           enablement: true
