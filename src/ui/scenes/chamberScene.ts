@@ -20,6 +20,7 @@ import {
   type ChamberSetup,
   type ChamberState,
 } from '../../scene/chamber';
+import { ELECTRON_M, ELECTRON_Q } from '../../physics/em';
 import { theme } from '../../render/theme';
 import { GestureMachine, type GestureEvent } from '../gestures';
 import { scoreMark, scoreSketch, type Pt } from '../predict';
@@ -137,10 +138,41 @@ export function mountChamberScene(
   const toWorld = (sx: number, sy: number): Pt => ({ x: (sx - ox) / scale, y: CHAMBER_H - (sy - oy) / scale });
   new ResizeObserver(resize).observe(canvas);
 
+  // ---------- energy gauge (implanter levels) ----------
+  const EV = 1.602176634e-19;
+  /** Work done by field regions along the axis from launcher to target (J). */
+  function axisWork(): number {
+    const q = ELECTRON_Q * state.polarity;
+    let w = 0;
+    for (const r of setup.regions) {
+      if (setup.launcher.y < r.y0_m || setup.launcher.y >= r.y1_m) continue;
+      const span = Math.min(r.x1_m, setup.target.x) - Math.max(r.x0_m, setup.launcher.x);
+      if (span > 0) w += q * r.ex_Vm * span; // W = F·Δx = qE·Δx along +x travel
+    }
+    return w;
+  }
+  function arrivalEnergyFor(v0: number): number {
+    return 0.5 * ELECTRON_M * v0 * v0 + axisWork();
+  }
+  /** Speed for the current pull length (same mapping as launch). */
+  function pullSpeed(len: number): number {
+    const frac = setup.energyWindow ? Math.min(1, Math.max(0.25, len / 0.3)) : 1;
+    return setup.launcher.speed_ms * frac;
+  }
+
   // ---------- game flow ----------
   function refreshEval(): void {
     evaln = evaluateMetrics(level.targets, level.stars, chamberMetrics(setup, state));
-    statsEl.textContent = `shots ${state.shots.length} · hits ${evaln.metrics.hits ?? 0}`;
+    if (setup.energyWindow) {
+      const last = [...state.shots].reverse().find((sh) => sh.landingEnergy_J > 0);
+      const ev = (j: number) => Math.round(j / EV);
+      statsEl.textContent =
+        `window ${ev(setup.energyWindow.min_J)}–${ev(setup.energyWindow.max_J)} eV` +
+        (last ? ` · last arrival ${ev(last.landingEnergy_J)} eV` : '') +
+        ` · hits ${evaln.metrics.hits ?? 0}`;
+    } else {
+      statsEl.textContent = `shots ${state.shots.length} · hits ${evaln.metrics.hits ?? 0}`;
+    }
     if (evaln.passed && evaln.stars > bestStars) {
       bestStars = evaln.stars;
       callbacks.onResult({
@@ -262,9 +294,7 @@ export function mountChamberScene(
       const len = Math.hypot(dx, dy);
       pull = null;
       if (len > 0.02) {
-        // pull magnitude sets speed (25%..100% of max); direction = pull direction
-        const frac = setup.energyWindow ? Math.min(1, Math.max(0.25, len / 0.3)) : 1;
-        const v = setup.launcher.speed_ms * frac;
+        const v = pullSpeed(len);
         doLaunch((dx / len) * v, (dy / len) * v);
       } else {
         draw();
@@ -475,6 +505,52 @@ export function mountChamberScene(
       ctx.stroke();
     }
     if (truthPts) ghostLine(truthPts, 'rgba(74,222,128,0.65)');
+    // implanter instrumentation: live energy gauge + too-fast/too-slow verdict
+    if (setup.energyWindow) {
+      const win = setup.energyWindow;
+      const gaugeMax = win.max_J * 1.6;
+      const gx = tl.x + 14;
+      const gy = tl.y + 14;
+      const gw = Math.min(280, CHAMBER_W * scale - 28);
+      ctx.fillStyle = 'rgba(20,29,48,0.9)';
+      ctx.fillRect(gx - 6, gy - 6, gw + 12, 46);
+      ctx.fillStyle = theme.textDim;
+      ctx.font = '11px system-ui';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('arrival energy', gx, gy);
+      // track + green window band
+      ctx.fillStyle = theme.stroke;
+      ctx.fillRect(gx, gy + 16, gw, 8);
+      ctx.fillStyle = 'rgba(74,222,128,0.55)';
+      ctx.fillRect(gx + (win.min_J / gaugeMax) * gw, gy + 16, ((win.max_J - win.min_J) / gaugeMax) * gw, 8);
+      // marker: live while pulling, else last arrival
+      let marker: number | null = null;
+      if (pull) {
+        const len = Math.hypot(pull.x - setup.launcher.x, pull.y - setup.launcher.y);
+        marker = arrivalEnergyFor(pullSpeed(len));
+      } else {
+        const last = [...state.shots].reverse().find((sh) => sh.landingEnergy_J > 0);
+        if (last) marker = last.landingEnergy_J;
+      }
+      if (marker !== null) {
+        const mx = gx + Math.min(1, marker / gaugeMax) * gw;
+        ctx.fillStyle = pull ? theme.accentWarm : theme.text;
+        ctx.fillRect(mx - 2, gy + 11, 4, 18);
+        ctx.font = '700 11px system-ui';
+        ctx.fillStyle = pull ? theme.accentWarm : theme.text;
+        ctx.fillText(`${Math.round(marker / EV)} eV`, Math.min(mx + 6, gx + gw - 44), gy + 30);
+      }
+      // verdict on a windowed miss
+      const lastShot = state.shots[state.shots.length - 1];
+      if (lastShot && !lastShot.hit && lastShot.landingEnergy_J > 0 && animHead >= 1) {
+        const verdict = lastShot.landingEnergy_J < win.min_J ? 'TOO SLOW — pull harder' : 'TOO FAST — pull softer';
+        ctx.fillStyle = theme.accentWarm;
+        ctx.font = '700 15px system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillText(verdict, t.x, t.y - setup.target.r * scale - 14);
+      }
+    }
     // probe tooltip
     if (probe && performance.now() < probe.until) {
       const s = toScreen(probe.x, probe.y);
