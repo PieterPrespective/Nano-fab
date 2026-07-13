@@ -19,25 +19,32 @@ scales.
 - [x] Gesture feel probe: one-finger tool strips vs. two-finger orbit tested
       on-device during the fps runs; no mode collisions reported.
 
-## NF3-1 — Foundations
+## NF3-1 — Foundations ✅
 
-- [ ] `physics/rng.ts` (seeded xorshift; distribution smoke tests).
-- [ ] `ui/gestures.ts` pure state machine + the ~20-case suite (tap/drag/
-      long-press/pinch/second-finger-mid-drag).
-- [ ] Schema v2 parser (accepting v1) + validator rules, one failing fixture
+- [x] `physics/rng.ts` (seeded mulberry32 + normal/Poisson; distribution tests).
+- [x] `ui/gestures.ts` pure state machine + suite (tap/drag/long-press/pinch/
+      second-finger-mid-drag/pinch-survivor-continues-as-drag).
+- [x] Schema v2 parser (accepting v1) + validator rules, one failing fixture
       per rule; metric-registry plumbing.
-- [ ] Save v2 + `migrateV1` (fixtures: v1 round-trip, upgrade, newer-version
-      read-only).
+- [x] Save v2 + `migrateV1` (fixtures: v1 round-trip, upgrade, newer-version
+      read-only) + mastery EMA and insight streaks.
 
-## NF3-2 — Wafer & timeline core
+## NF3-2 — Wafer & timeline core ✅
 
-- [ ] `scene/wafer.ts` column ops + morphology; property-fuzz invariants.
-- [ ] `physics/process.ts` ops (spin/expose/develop/etch/deposit/implant/
-      anneal/cmp/strip/thermalOxide) with golden fixtures each; the 12-step
-      MOSFET + GAA golden recipes.
-- [ ] `scene/timeline.ts` memoized runs + interpolators (t-grid goldens);
-      bench guard < 50 ms.
-- [ ] `scene/extract.ts` wafer→DeviceParams (5% tolerance vs. recipe intent).
+- [x] `scene/wafer.ts` column ops (implicit-air gaps = cavities for free);
+      property-fuzz invariants over 200 random op applications.
+- [x] `physics/process.ts` all 10 ops with behavior tests: litho heartbeat,
+      wet-etch undercut (cavity under resist), PVD keyhole voids vs ALD fill,
+      self-aligned implant blocking, damascene CMP, Deal-Grove 0.45× consume.
+      Golden recipes: 16-step planar MOSFET (order-sensitivity proven: implant
+      before gate dopes the channel) + GAA superlattice→release→wrap (the
+      conformal fill closes around suspended sheets).
+- [x] `scene/timeline.ts` prefix-memoized runs (object-identity test) +
+      per-op scrub interpolators (monotone etch front, cmp plane lerp);
+      bench guard.
+- [x] `scene/extract.ts` wafer→DeviceParams: thinnest-dielectric gate
+      detection, GAA sheet counting; planar recipe within 5% of intent and
+      scored end-to-end by the phase-1 device physics.
 
 ## NF3-3 — Meshing & renderer
 
