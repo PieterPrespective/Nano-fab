@@ -1,7 +1,7 @@
 /**
  * NanoFab entry point: mounts the chapter shell (NF03) and, in production,
- * registers the offline-first service worker. The phase-1 device lab lives
- * on behind the "Classic Layer 1" card until Chapter 2 re-stages it.
+ * registers the offline-first service worker. Chapters 1–2 are live; the
+ * phase-1 device lab was re-staged as Chapter 2's energy-terrain levels.
  */
 
 import { startShell } from './ui/shell';
