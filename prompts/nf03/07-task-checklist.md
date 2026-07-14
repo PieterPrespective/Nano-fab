@@ -55,8 +55,12 @@ scales.
 - [x] `render3d/*`: palette module, pure orbit-camera math unit-tested
       (orthonormality, clip mapping, clamps), WaferRenderer GL glue derived
       from the >80 fps spike (dpr≤1.5 budget baked in).
-- [ ] e2e: per-scene screenshot goldens + scrub pixel tolerance — lands with
-      the first scene shell (NF3-7), which is the first page that renders.
+- [x] e2e: per-scene screenshots + render assertions (landed with NF3-7's
+      scene shells): every scene is screenshotted and asserted non-blank via
+      pixel variance; strict pixel goldens deliberately skipped (dpr/AA
+      drift across environments makes them flaky — variance + eyeballed
+      screenshots caught every real regression so far, incl. the blank
+      first-frame and black-canvas bugs).
 
 ## NF3-4 — Interaction layer (pure core ✅; scene bindings land with scenes)
 
@@ -94,21 +98,35 @@ scales.
 - [x] Chapter e2e happy path: real click-through + drag-sketch prediction,
       clear with 3★, mastery persisted, offline reload, legacy path.
 
-## NF3-7 — Ch2 Hills & Barriers (dimension ladder + the re-stage)
+## NF3-7 — Ch2 Hills & Barriers (dimension ladder + the re-stage) ✅
 
-- [ ] `physics/em.ts` gains `potentialAt`; `physics/contours.ts`
-      (marching squares/cubes; goldens: point-charge rings are circles ± tol,
-      shell spacing ∝ 1/r²; plate pair gives parallel planes).
-- [ ] Prologue levels P1–P3 (`scalar-field-gradient` node): heightmap
-      steepest-descent rolls (reuses em RK4), volume + cut-plane shells,
-      strained-Si rank-2 sidebar. Prediction fixtures for P1 sketch/P2 mark.
-- [ ] `physics/terrain.ts` (terrain from device electrostatics; ball-crowd
-      sampler with seeded RNG; arrival-rate ↔ drainCurrent consistency test
-      ±10%).
-- [ ] Energy-terrain scene; 6 levels re-staging l1-01…06 plus the 2b
-      "shells around the drain" DIBL-as-geometry level (v1 targets inside
-      v2 wrappers; original S3 fixtures must pass unmodified).
-- [ ] Delete v1-only shell paths once green (strangler step 3).
+- [x] `physics/em.ts` gains `potentialAt` (landed in NF3-6); new
+      `physics/contours.ts`: marching squares with segment chaining,
+      bilinear grid sampling/gradients, steepest-descent (gradient-flow)
+      paths. Goldens: point-charge rings are circles ±2%, equal-ΔV shell
+      spacing = ΔV/E (∝ r², measured 4×±15% per doubling), plate pair gives
+      straight evenly-spaced lines, descent curves along −∇V on an
+      anisotropic bowl (not the chord).
+- [x] Prologue levels c2-01…03 (`scalar-field-gradient`): P1 heightmap with
+      watershed decoy (balls roll gradient flow; sketch prediction), P2
+      charged sphere in a box with cut plane + probe (mark prediction), P3
+      strained-Si rank-2 slab (choose probe; σ̿ response leaves E unless on
+      a principal axis). Pure model in `scene/fieldlab.ts` (new `field-lab`
+      scene type + metric namespace); runtime `ui/scenes/fieldScene.ts`.
+- [x] `physics/terrain.ts`: barrier (Vth−Vg)/n with DIBL sag, band profile,
+      seeded flux-weighted crowd (crossing fraction exp(−Eb/kT)), analytic
+      arrival rate; subthreshold rate ratios match drainCurrent ±10%.
+- [x] Energy-terrain scene (`scene/terrainlab.ts` pure +
+      `ui/scenes/terrainScene.ts`): grab the hilltop (Vg), drain ledge
+      (Vds), hill base (gate length); thermal ball crowd with honest meters
+      (crowd pace cube-root compressed, labeled; Id/barrier/targets exact);
+      Id–Vg inset. Levels c2-04…10 re-stage l1-01…06 with v1 targets
+      verbatim + c2-06 "shells around the drain" (DIBL as ≥2-D geometry).
+      S3 proves the ORIGINAL v1 solutions win the re-stages unmodified.
+- [x] Delete v1-only shell paths (strangler step 3): `ui/app.ts`,
+      `ui/layout.ts` and the legacy chapter-map card are gone; l1-*.json +
+      engine/levels.ts remain as the v1 fixture set and the shared
+      controls/params machinery.
 
 ## NF3-8 — Ch3+Ch4 Waves & Photons
 

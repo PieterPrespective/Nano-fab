@@ -1,8 +1,8 @@
 /**
- * NF03 shell: the chapter map. Hosts schema-v2 scene runtimes (Ch1 particle
- * chamber for now) and hands off to the phase-1 canvas app for the classic
- * device lab (strangler pattern — the legacy path dies when Ch2 re-stages
- * land). Menus are plain DOM; scenes own their canvases.
+ * NF03 shell: the chapter map. Hosts schema-v2 scene runtimes, dispatching
+ * by scene type (particle-chamber / field-lab / energy-terrain). The
+ * phase-1 canvas app is gone — Chapter 2 re-stages its six levels on the
+ * energy terrain (strangler step 3 complete).
  */
 
 import { parseLevelV2, type LevelV2 } from '../engine/levels2';
@@ -16,23 +16,25 @@ import {
 } from '../engine/progress';
 import { rawLevelsV2 } from '../levels/index';
 import { theme } from '../render/theme';
-import { startApp } from './app';
 import { chapterMastery, chapterUnlocked } from './mastery';
 import { mountChamberScene, type ChamberHooks } from './scenes/chamberScene';
+import { mountFieldScene, type FieldHooks } from './scenes/fieldScene';
+import { mountTerrainScene, type TerrainHooks } from './scenes/terrainScene';
 
 const CHAPTERS: Array<{ n: number; title: string; blurb: string; ready: boolean }> = [
   { n: 1, title: 'Motion & Charge', blurb: 'Fields move electrons like gravity moves planets — steer them.', ready: true },
-  { n: 2, title: 'Hills & Barriers', blurb: 'The transistor as a landscape you can grab. (in development)', ready: false },
+  { n: 2, title: 'Hills & Barriers', blurb: 'Potential is a landscape; the transistor is a hill you can grab.', ready: true },
   { n: 3, title: 'Waves & Light', blurb: 'Why 13.5 nm — interference, diffraction, the blur limit.', ready: false },
   { n: 4, title: 'Counting Photons', blurb: 'Dose, shot noise, and the ragged edge.', ready: false },
   { n: 5, title: 'The Machine', blurb: 'Jerk, settling, and wafers per hour — your home turf.', ready: false },
   { n: 6, title: 'The Fab', blurb: 'Build a transistor from blank silicon, step by step in 3D.', ready: false },
 ];
 
+export type AnySceneHooks = ChamberHooks | FieldHooks | TerrainHooks;
+
 export interface ShellHooks {
   openChapter(n: number): void;
-  openLevel(id: string): ChamberHooks | null;
-  openLegacy(): void;
+  openLevel(id: string): AnySceneHooks | null;
   home(): void;
   state(): { screen: string; levelId?: string };
 }
@@ -53,10 +55,10 @@ export function startShell(root: HTMLElement): ShellHooks {
   const byChapter: Record<number, string[]> = {};
   for (const l of levels) (byChapter[l.chapter] ??= []).push(l.id);
 
-  let screen: 'chapters' | 'levels' | 'scene' | 'legacy' = 'chapters';
+  let screen: 'chapters' | 'levels' | 'scene' = 'chapters';
   let currentChapter = 1;
   let currentLevel: string | undefined;
-  let sceneHooks: ChamberHooks | null = null;
+  let sceneHooks: AnySceneHooks | null = null;
 
   function renderChapters(): void {
     screen = 'chapters';
@@ -71,7 +73,7 @@ export function startShell(root: HTMLElement): ShellHooks {
         <button data-ch="${c.n}" ${unlocked ? '' : 'disabled'}
           style="text-align:left;background:${unlocked ? theme.panelRaised : theme.panel};border:1px solid ${theme.stroke};
                  border-radius:12px;padding:14px 16px;color:${unlocked ? theme.text : theme.textDim};cursor:${unlocked ? 'pointer' : 'default'}">
-          <div style="font-size:12px;font-weight:600;color:${unlocked ? theme.accent : theme.textDim}">CHAPTER ${c.n}${c.ready ? '' : ' · coming soon'}</div>
+          <div style="font-size:12px;font-weight:600;color:${unlocked ? theme.accent : theme.textDim}">CHAPTER ${c.n}${c.ready ? (unlocked ? '' : ' · locked') : ' · coming soon'}</div>
           <div style="font-size:17px;font-weight:700;margin:4px 0">${c.title}</div>
           <div style="font-size:13px;color:${theme.textDim}">${c.blurb}</div>
           ${total ? `<div style="font-size:12px;margin-top:6px;color:${theme.textDim}">${cleared}/${total} cleared · understanding ${mastery}%</div>` : ''}
@@ -85,17 +87,11 @@ export function startShell(root: HTMLElement): ShellHooks {
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:16px">
           ${cards}
-          <button data-legacy style="text-align:left;background:${theme.panelRaised};border:1px solid ${theme.stroke};border-radius:12px;padding:14px 16px;color:${theme.text};cursor:pointer">
-            <div style="font-size:12px;font-weight:600;color:${theme.accentWarm}">DEVICE LAB</div>
-            <div style="font-size:17px;font-weight:700;margin:4px 0">Classic Layer 1 (phase 1)</div>
-            <div style="font-size:13px;color:${theme.textDim}">The original six Id–Vg puzzles, until Chapter 2 re-stages them.</div>
-          </button>
         </div>
       </div>`;
     root.querySelectorAll<HTMLButtonElement>('button[data-ch]').forEach((b) => {
       b.onclick = () => hooks.openChapter(Number(b.dataset.ch));
     });
-    (root.querySelector('button[data-legacy]') as HTMLButtonElement).onclick = () => hooks.openLegacy();
   }
 
   function renderLevels(chapter: number): void {
@@ -130,20 +126,30 @@ export function startShell(root: HTMLElement): ShellHooks {
     });
   }
 
-  function openScene(level: LevelV2): ChamberHooks {
+  function openScene(level: LevelV2): AnySceneHooks {
     screen = 'scene';
     currentLevel = level.id;
-    sceneHooks = mountChamberScene(root, level, {
-      onResult: ({ stars }) => {
+    const callbacks = {
+      onResult: ({ stars }: { stars: number }) => {
         progress = recordResult(progress, level.id, stars, {});
         persist();
       },
-      onPrediction: (nodes, score) => {
+      onPrediction: (nodes: string[], score: number) => {
         progress = recordPrediction(progress, nodes, score);
         persist();
       },
       onExit: () => renderLevels(level.chapter),
-    });
+    };
+    switch (level.scene.type) {
+      case 'field-lab':
+        sceneHooks = mountFieldScene(root, level, callbacks);
+        break;
+      case 'energy-terrain':
+        sceneHooks = mountTerrainScene(root, level, callbacks);
+        break;
+      default:
+        sceneHooks = mountChamberScene(root, level, callbacks);
+    }
     return sceneHooks;
   }
 
@@ -153,20 +159,12 @@ export function startShell(root: HTMLElement): ShellHooks {
       const level = levels.find((l) => l.id === id);
       return level ? openScene(level) : null;
     },
-    openLegacy: () => {
-      screen = 'legacy';
-      startApp(root, () => {
-        // reload progress: the legacy app writes to the same store
-        progress = loadProgress(store).progress;
-        renderChapters();
-      });
-    },
     home: () => renderChapters(),
     state: () => ({ screen, levelId: currentLevel }),
   };
 
   renderChapters();
-  (window as unknown as { __nanofab2?: ShellHooks & { scene: () => ChamberHooks | null } }).__nanofab2 = {
+  (window as unknown as { __nanofab2?: ShellHooks & { scene: () => AnySceneHooks | null } }).__nanofab2 = {
     ...hooks,
     scene: () => sceneHooks,
   };

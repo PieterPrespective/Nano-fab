@@ -197,12 +197,17 @@ export function heightmapEnv(setup: HeightmapSetup): EmEnv {
   return { charges: setup.charges, regions: [], soften_m: WELL_SOFTEN };
 }
 
-/** Drop a ball: it follows −∇V; `home` if it settles in the home basin. */
-export function dropBall(setup: HeightmapSetup, state: FieldLabState, x: number, y: number): FieldLabState {
+/** The gradient-flow path a ball dropped at (x,y) would take. */
+export function descentPathForDrop(setup: HeightmapSetup, x: number, y: number): Pt[] {
   const env = heightmapEnv(setup);
   const { x0, y0, x1, y1 } = setup.window;
   const f = sampleField((px, py) => potentialAt(px, py, env), x0, y0, x1, y1, GRID_N, GRID_N);
-  const path = descentPath(f, x, y, { step_m: (x1 - x0) / 200, maxSteps: 5000 });
+  return descentPath(f, x, y, { step_m: (x1 - x0) / 200, maxSteps: 5000 });
+}
+
+/** Drop a ball: it follows −∇V; `home` if it settles in the home basin. */
+export function dropBall(setup: HeightmapSetup, state: FieldLabState, x: number, y: number): FieldLabState {
+  const path = descentPathForDrop(setup, x, y);
   const end = path[path.length - 1]!;
   const home = Math.hypot(end.x - setup.home.x, end.y - setup.home.y) <= setup.home.r;
   return { ...state, drops: [...state.drops, { x, y, home, path }] };
