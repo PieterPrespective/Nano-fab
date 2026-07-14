@@ -1,0 +1,43 @@
+{
+  "schema": 2,
+  "id": "c2-07",
+  "chapter": 2,
+  "title": "The wall you cannot beat",
+  "intro": "Subthreshold swing is how many millivolts of gate you spend per 10× drop in arrivals — on the terrain, how sharply the crowd switches off as the barrier rises. Your GAA device sits at 77 mV/dec. Shape the terrain — gate length, sheet thickness — to get under 65. Then try to beat 59 mV/dec. Really, try.",
+  "explain": "You hit the Boltzmann limit: kT/q·ln10 ≈ 59.6 mV/dec at room temperature. It is not geometry — it is the thermal ball crowd itself. The exp(−Eb/kT) tail means even a PERFECT gate (barrier tracking Vg one-to-one) spends 59.6 mV per decade; electrostatic imperfection only adds the ideality factor n on top. No terrain shaping beats the crowd's own statistics. This is why supply voltage stopped scaling and leakage became a zero-sum fight — and why 'steep-slope' research (tunnel FETs, negative capacitance) tries to cheat the crowd instead of the geometry.",
+  "scene": {
+    "type": "energy-terrain",
+    "setup": {
+      "controls": {
+        "gateLength_m": { "min": 14e-9, "max": 50e-9, "init": 16e-9, "scale": "log" },
+        "bodyThickness_m": { "min": 4e-9, "max": 10e-9, "init": 8e-9, "scale": "linear" }
+      },
+      "fixed": {
+        "arch": "gaa",
+        "nStack": 3,
+        "sheetWidth_m": 25e-9,
+        "eot_m": 0.8e-9,
+        "vdd_V": 0.7,
+        "vth0_V": 0.25,
+        "temperature_K": 300
+      },
+      "crowdSeed": 13,
+      "choices": ["Yes — with a perfect gate, 0 mV/dec", "No — 59.6 mV/dec is the crowd's own statistics", "Only below 100 nm"],
+      "correctChoice": 1
+    }
+  },
+  "tools": ["drag-object", "scrub", "probe"],
+  "prediction": {
+    "kind": "choose",
+    "prompt": "Can ANY terrain shaping switch the crowd off faster than 59.6 mV per decade at 300 K?",
+    "scored": false,
+    "conceptNodes": ["boltzmann-tail"]
+  },
+  "targets": [
+    { "metric": "ss_VperDec", "op": "<=", "value": 0.065, "label": "SS ≤ 65 mV/dec" },
+    { "metric": "ion_A", "op": ">=", "value": 3e-5, "label": "Ion ≥ 30 µA" }
+  ],
+  "stars": { "metric": "ss_VperDec", "direction": "min", "two": 0.062, "three": 0.0605 },
+  "insets": [{ "kind": "idvg", "unlockOn": "always" }],
+  "conceptNodes": ["boltzmann-tail", "potential-terrain"]
+}

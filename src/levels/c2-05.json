@@ -1,0 +1,43 @@
+{
+  "schema": 2,
+  "id": "c2-05",
+  "chapter": 2,
+  "title": "The drain is bullying again",
+  "intro": "Scrub the drain voltage and watch the hilltop sag — that is DIBL, drain-induced barrier lowering: the drain's potential reaching in and stealing the gate's barrier. At 340 mV/V your planar device's threshold basically belongs to the drain, and the off-state crowd pours over. A longer gate alone won't save you at these dimensions — wrap the terrain's walls instead: change the architecture. Get DIBL under 50 mV/V with a sub-20 nm gate.",
+  "explain": "This single problem drove the whole transistor roadmap: planar → FinFET (Intel, 22 nm, 2011) → gate-all-around nanosheets (Samsung 3 nm, TSMC N2). Each step gates the channel from more sides — one, three, then all four — shrinking the natural length λ the drain field needs to invade. On the terrain you saw it as walls: the more sides the gate fences, the less the drain can reach in and melt the hilltop. Same dimensions, different geometry: your GAA device has ~10× less DIBL than the planar one.",
+  "scene": {
+    "type": "energy-terrain",
+    "setup": {
+      "controls": {
+        "arch": { "options": ["planar", "finfet", "gaa"], "init": "planar" },
+        "gateLength_m": { "min": 14e-9, "max": 20e-9, "init": 16e-9, "scale": "linear" }
+      },
+      "fixed": {
+        "eot_m": 0.9e-9,
+        "bodyThickness_m": 5e-9,
+        "sheetWidth_m": 20e-9,
+        "nStack": 2,
+        "vdd_V": 0.7,
+        "vth0_V": 0.25,
+        "temperature_K": 300
+      },
+      "crowdSeed": 11,
+      "choices": ["The hilltop stays put — it's the gate's job", "The hilltop sinks as the drain pulls harder", "The hilltop rises to fight back"],
+      "correctChoice": 1
+    }
+  },
+  "tools": ["drag-object", "scrub", "probe"],
+  "prediction": {
+    "kind": "choose",
+    "prompt": "You only raise the DRAIN voltage. What happens to the barrier the GATE is supposed to own?",
+    "scored": true,
+    "conceptNodes": ["potential-terrain"]
+  },
+  "targets": [
+    { "metric": "dibl_VperV", "op": "<=", "value": 0.05, "label": "DIBL ≤ 50 mV/V" },
+    { "metric": "ion_A", "op": ">=", "value": 3.5e-5, "label": "Ion ≥ 35 µA" }
+  ],
+  "stars": { "metric": "dibl_VperV", "direction": "min", "two": 0.04, "three": 0.03 },
+  "insets": [{ "kind": "idvg", "unlockOn": "always" }],
+  "conceptNodes": ["potential-terrain"]
+}

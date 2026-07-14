@@ -1,0 +1,36 @@
+{
+  "schema": 2,
+  "id": "c2-03",
+  "chapter": 2,
+  "title": "Two dials, not one",
+  "intro": "So when DOES a quantity need more than one number per point? Meet a slab of strained silicon in a fixed electric field. Rotate the slab and probe the current that flows. If the response were a plain number, the current would always follow the field. Watch what actually happens at a few different angles.",
+  "explain": "The current refuses to follow E unless the slab's strain axis lines up with it — the response depends on DIRECTION, so one number per point is not enough. Conductivity here is a rank-2 tensor σ̿ (a 2×2 matrix): J = σ̿·E, two indices, 'how much of a push along x ends up as flow along y'. THAT is what tensors are for. Potential never needs this — V answers a question with no direction in it. Rank (how many indices) and domain dimension (1D/2D/3D) are independent dials, and confusing them is the most common tensor myth. Anchor: strain engineering has boosted silicon mobility in production CMOS since the 90 nm node (2003).",
+  "scene": {
+    "type": "field-lab",
+    "setup": {
+      "mode": "tensor",
+      "sigmaMajor": 1.8,
+      "sigmaMinor": 1.0,
+      "e0": 1,
+      "choices": [
+        "The current always follows the field",
+        "The current tilts toward the strained axis",
+        "The current stops at 45°"
+      ],
+      "correctChoice": 1
+    }
+  },
+  "tools": ["drag-object", "probe"],
+  "prediction": {
+    "kind": "choose",
+    "prompt": "Rotate the slab 45° to the field. What does the current do?",
+    "scored": false,
+    "conceptNodes": ["scalar-field-gradient"]
+  },
+  "targets": [
+    { "metric": "orientationsProbed", "op": ">=", "value": 3, "label": "Probe 3 different angles" }
+  ],
+  "stars": { "metric": "orientationsProbed", "direction": "max", "two": 4, "three": 6 },
+  "insets": [],
+  "conceptNodes": ["scalar-field-gradient"]
+}

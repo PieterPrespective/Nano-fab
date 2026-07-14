@@ -124,7 +124,8 @@ function expectNumber(v: unknown, path: string): number {
   return v;
 }
 
-function parseControl(key: string, v: unknown, path: string): ControlSpec {
+/** Shared with schema-v2 scene setups (energy-terrain re-stages). */
+export function parseControl(key: string, v: unknown, path: string): ControlSpec {
   if (!isRecord(v)) fail(path, 'expected object');
   if ('options' in v) {
     if (key !== 'arch') fail(path, `enum control only supported for "arch", got "${key}"`);
@@ -270,8 +271,17 @@ function clampNumeric(spec: NumericControl, value: number): number {
  * out-of-range physics inputs. Locked parameters ignore player values.
  */
 export function resolveParams(level: Level, player: PlayerValues): DeviceParams {
-  const params: DeviceParams = { ...DEFAULT_PARAMS, ...level.fixed };
-  for (const [key, spec] of Object.entries(level.controls)) {
+  return resolveControlValues(level.controls, level.fixed, player);
+}
+
+/** Same merge for any controls/fixed pair (shared with schema-v2 scenes). */
+export function resolveControlValues(
+  controls: Record<string, ControlSpec>,
+  fixed: Level['fixed'],
+  player: PlayerValues,
+): DeviceParams {
+  const params: DeviceParams = { ...DEFAULT_PARAMS, ...fixed };
+  for (const [key, spec] of Object.entries(controls)) {
     const raw = player[key];
     if (spec.kind === 'enum') {
       const v = typeof raw === 'string' && spec.options.includes(raw as Architecture) ? raw : spec.init;

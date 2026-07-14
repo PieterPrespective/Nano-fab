@@ -16,6 +16,7 @@ import {
 
 export const SCENE_TYPES = [
   'particle-chamber',
+  'field-lab',
   'energy-terrain',
   'ripple-tank',
   'resist-exposure',
@@ -55,6 +56,7 @@ export type InsetKind = (typeof INSET_KINDS)[number];
 export const METRIC_REGISTRY: Record<SceneType, readonly string[]> = {
   'energy-terrain': METRIC_KEYS, // scored by the phase-1 device model
   'particle-chamber': ['hits', 'hitFraction', 'landingEnergy_J', 'shotsUsed'],
+  'field-lab': ['ballsHome', 'dropsUsed', 'cutsMade', 'probesUsed', 'peakFound', 'orientationsProbed'],
   'ripple-tank': ['minPitch_m', 'epe_m', 'contrast'],
   'resist-exposure': ['defectCount', 'ler_m', 'dose_Jm2', 'throughput_wph'],
   'scanner-stage': ['moveSettle_s', 'overlay_m', 'wafersPerHour'],

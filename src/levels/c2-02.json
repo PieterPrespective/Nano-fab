@@ -1,0 +1,30 @@
+{
+  "schema": 2,
+  "id": "c2-02",
+  "chapter": 2,
+  "title": "When height runs out",
+  "intro": "The same potential now fills a whole volume — a charged sphere floating in a box — and there is nothing left to stand on: 'height' was only a picture. The equipotentials are now nested shells, like onion layers. Drag the cut plane through the volume and the shells become the familiar contour rings on the cut face. Find and probe the point on the face where the field is strongest.",
+  "explain": "Potential in 3D is STILL one number per point — V(x, y, z) is a scalar field on a 3-D domain, not a '3D tensor'. What changed is the domain (1D profile → 2D map → 3D volume), never the value. The field E = −∇V is now a 3-D arrow pointing perpendicular to the local shell, and it is strongest where shells crowd together: near the charge, spacing grows like r² (E ∝ 1/r², Coulomb's law), which you just verified with the probe. Keep this cut-plane skill — the drain of a transistor is about to bully a barrier with exactly these shells.",
+  "scene": {
+    "type": "field-lab",
+    "setup": {
+      "mode": "volume",
+      "charges": [{ "q_nC": 2, "x": 0.5, "y": 0.4, "z": 0.45 }],
+      "box": { "x0": 0, "y0": 0, "z0": 0, "x1": 1, "y1": 0.8, "z1": 0.9 }
+    }
+  },
+  "tools": ["cut", "probe"],
+  "prediction": {
+    "kind": "mark",
+    "prompt": "Mark where on the cut face the electric field is strongest.",
+    "scored": true,
+    "conceptNodes": ["scalar-field-gradient"]
+  },
+  "targets": [
+    { "metric": "peakFound", "op": ">=", "value": 1, "label": "Probe the strongest-field point" },
+    { "metric": "cutsMade", "op": ">=", "value": 1, "label": "Move the cut plane" }
+  ],
+  "stars": { "metric": "probesUsed", "direction": "min", "two": 4, "three": 2 },
+  "insets": [],
+  "conceptNodes": ["scalar-field-gradient"]
+}

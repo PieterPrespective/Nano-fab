@@ -2,5 +2,24 @@
   "c1-01": { "shots": [{ "vx": 1e7, "vy": 0 }] },
   "c1-02": { "polarity": -1, "shots": [{ "vx": 1e7, "vy": 0 }] },
   "c1-03": { "place": [{ "x": 0.55, "y": 0.25 }], "shots": [{ "vx": 1e7, "vy": 0 }] },
-  "c1-04": { "shots": [{ "vx": 8e6, "vy": 0 }] }
+  "c1-04": { "shots": [{ "vx": 8e6, "vy": 0 }] },
+  "c2-01": { "drops": [{ "x": 0.85, "y": 0.35 }, { "x": 0.6, "y": 0.3 }, { "x": 0.75, "y": 0.55 }] },
+  "c2-02": { "cut": { "axis": "z", "frac": 0.5 }, "probes": [{ "u": 0.52, "v": 0.42 }] },
+  "c2-03": { "angles_deg": [0, 30, 60, 90, 120, 150] },
+  "c2-04": { "values": { "gateLength_m": 45e-9 } },
+  "c2-05": { "values": { "arch": "gaa", "gateLength_m": 20e-9 } },
+  "c2-06": { "cut": { "axis": "z", "frac": 0.5 }, "probes": [{ "u": 0.8, "v": 0.37 }] },
+  "c2-07": { "values": { "gateLength_m": 40e-9, "bodyThickness_m": 5e-9 } },
+  "c2-08": { "values": { "eot_m": 1e-9 } },
+  "c2-09": { "values": { "arch": "gaa", "nStack": 4, "sheetWidth_m": 40e-9 } },
+  "c2-10": {
+    "values": {
+      "arch": "gaa",
+      "gateLength_m": 22e-9,
+      "eot_m": 1.1e-9,
+      "bodyThickness_m": 5e-9,
+      "nStack": 4,
+      "sheetWidth_m": 30e-9
+    }
+  }
 }

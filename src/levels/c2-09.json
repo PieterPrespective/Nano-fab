@@ -1,0 +1,35 @@
+{
+  "schema": 2,
+  "id": "c2-09",
+  "chapter": 2,
+  "title": "Stack the sheets",
+  "intro": "Your cell needs 150 µA of drive but the footprint is frozen — you cannot make the terrain wider on the wafer. FinFETs add parallel hills side by side; nanosheets stack whole channels VERTICALLY, like floors in a parking garage, each floor its own ball crowd with its own gated hill. Build enough effective width into the same footprint.",
+  "explain": "This is GAA's killer feature: effective width = sheets × perimeter, so drive current scales vertically while the footprint stands still. Real 3 nm/2 nm-class devices stack 3–4 sheets, and because the gate wraps every sheet on all four sides, leakage stays fenced while you stack — your FinFET at max fins delivered less current AND more leakage than the 4-sheet stack. Bonus knob: sheet width is a continuous design variable fins never had.",
+  "scene": {
+    "type": "energy-terrain",
+    "setup": {
+      "controls": {
+        "arch": { "options": ["finfet", "gaa"], "init": "finfet" },
+        "nStack": { "min": 1, "max": 4, "step": 1, "init": 1 },
+        "sheetWidth_m": { "min": 10e-9, "max": 40e-9, "init": 20e-9, "scale": "linear" }
+      },
+      "fixed": {
+        "gateLength_m": 18e-9,
+        "eot_m": 0.9e-9,
+        "bodyThickness_m": 5e-9,
+        "vdd_V": 0.7,
+        "vth0_V": 0.25,
+        "temperature_K": 300
+      },
+      "crowdSeed": 19
+    }
+  },
+  "tools": ["drag-object", "scrub", "probe"],
+  "targets": [
+    { "metric": "ion_A", "op": ">=", "value": 1.5e-4, "label": "Ion ≥ 150 µA" },
+    { "metric": "leakagePower_W", "op": "<=", "value": 3e-9, "label": "Leakage power ≤ 3 nW" }
+  ],
+  "stars": { "metric": "ion_A", "direction": "max", "two": 1.7e-4, "three": 2e-4 },
+  "insets": [{ "kind": "idvg", "unlockOn": "always" }],
+  "conceptNodes": ["potential-terrain"]
+}

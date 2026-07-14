@@ -1,0 +1,42 @@
+{
+  "schema": 2,
+  "id": "c2-04",
+  "chapter": 2,
+  "title": "Roll over the hill",
+  "intro": "This hill IS a transistor. The crowd of jittering balls is thermal electrons at the source; the hilltop is the channel barrier the gate controls; every ball that crests it rains into the drain — the arrival counter is literally the drain current. This device's gate is so short the drain has stolen the barrier: it leaks even when 'off'. Stretch the gate longer until the hill actually blocks the crowd: at least 10,000× more arrivals ON than OFF.",
+  "explain": "The balls just taught you the Boltzmann tail: the fraction of a thermal crowd with energy above a barrier Eb is exp(−Eb/kT), so every kT·ln10 ≈ 59.6 meV of extra barrier cuts arrivals 10×. That exponential is the entire off-state of every chip you own. And you met short-channel effects from the terrain side: below ~30 nm a planar gate loses grip, the drain erodes the hilltop, and the off-floor rises exponentially. Fun fact: at the real '5nm' node the gate is ~18 nm long (IRDS 2021) — node names stopped being dimensions around 2011.",
+  "scene": {
+    "type": "energy-terrain",
+    "setup": {
+      "controls": {
+        "gateLength_m": { "min": 12e-9, "max": 60e-9, "init": 12e-9, "scale": "log" }
+      },
+      "fixed": {
+        "arch": "planar",
+        "eot_m": 1e-9,
+        "bodyThickness_m": 6e-9,
+        "sheetWidth_m": 25e-9,
+        "vdd_V": 0.7,
+        "vth0_V": 0.25,
+        "temperature_K": 300
+      },
+      "crowdSeed": 7,
+      "choices": ["A few more balls make it", "About twice as many", "Ten times or more — it explodes"],
+      "correctChoice": 2
+    }
+  },
+  "tools": ["drag-object", "scrub", "probe"],
+  "prediction": {
+    "kind": "choose",
+    "prompt": "If the gate drops the barrier by just 60 mV (half a hilltop notch), how many more balls get over?",
+    "scored": true,
+    "conceptNodes": ["boltzmann-tail", "potential-terrain"]
+  },
+  "targets": [
+    { "metric": "ionOverIoff", "op": ">=", "value": 1e4, "label": "Ion/Ioff ≥ 10⁴" },
+    { "metric": "ion_A", "op": ">=", "value": 4e-6, "label": "Ion ≥ 4 µA" }
+  ],
+  "stars": { "metric": "ionOverIoff", "direction": "max", "two": 3e4, "three": 7e4 },
+  "insets": [{ "kind": "idvg", "unlockOn": "reveal" }],
+  "conceptNodes": ["potential-terrain", "boltzmann-tail"]
+}

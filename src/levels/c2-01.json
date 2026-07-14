@@ -1,0 +1,35 @@
+{
+  "schema": 2,
+  "id": "c2-01",
+  "chapter": 2,
+  "title": "One number everywhere",
+  "intro": "This landscape is not rock — it is electric potential V, drawn as height. V is one plain number at every point; the contour rings are where that number is equal. Drop balls and watch them roll. To win, land 3 balls in the flagged home basin — but there is a decoy valley, and the ridge between them is invisible unless you read the contours.",
+  "explain": "A ball rolls along −∇V: straight DOWN the local slope, perpendicular to every contour line it crosses — not straight at the deepest point. That is the whole trick: V itself has no direction (it is a scalar field, one number per point), while its gradient ∇V is a vector you get for free by asking 'which way is downhill, and how steep?'. Where contours crowd together the slope — the electric field — is strong. Real charges do exactly this: E = −∇V, which is why field lines always cross equipotentials at right angles.",
+  "scene": {
+    "type": "field-lab",
+    "setup": {
+      "mode": "heightmap",
+      "charges": [
+        { "q_nC": -3, "x": 0.7, "y": 0.4 },
+        { "q_nC": -1.2, "x": 0.22, "y": 0.6 }
+      ],
+      "window": { "x0": 0, "y0": 0, "x1": 1, "y1": 0.75 },
+      "home": { "x": 0.7, "y": 0.4, "r": 0.06 },
+      "ballsRequired": 3,
+      "predictionStart": { "x": 0.42, "y": 0.12 }
+    }
+  },
+  "tools": ["place", "probe", "draw"],
+  "prediction": {
+    "kind": "sketch",
+    "prompt": "A ball is dropped at the white marker. Sketch the path it will roll.",
+    "scored": true,
+    "conceptNodes": ["scalar-field-gradient"]
+  },
+  "targets": [
+    { "metric": "ballsHome", "op": ">=", "value": 3, "label": "3 balls in the home basin" }
+  ],
+  "stars": { "metric": "dropsUsed", "direction": "min", "two": 6, "three": 4 },
+  "insets": [],
+  "conceptNodes": ["scalar-field-gradient"]
+}

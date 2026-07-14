@@ -1,0 +1,43 @@
+{
+  "schema": 2,
+  "id": "c2-08",
+  "chapter": 2,
+  "title": "The ball that cheats",
+  "intro": "A thinner gate oxide grips the channel harder — a sharper, better-behaved hill. So thin it to the limit, right? Watch the wall as you do: below ~0.8 nm of equivalent oxide, balls start APPEARING ON THE OTHER SIDE without ever going over. That is not a bug. Find the oxide thickness that keeps both leaks — over the hill and through the wall — quiet.",
+  "explain": "Mechanics just ended. A classical ball never crosses a barrier taller than its energy; an electron is a wave with a tail that leaks THROUGH thin barriers — quantum tunneling. Gate direct tunneling grows ~10× for every 0.25 nm of SiO₂-equivalent thinning: a hard exponential wall that no clever electrostatics fixes. This is why high-k metal gate happened at the 45 nm node (2007): a high-k dielectric keeps the PHYSICAL barrier thick while acting electrically thin. In this simplified model you can only trade one leak against the other — real engineers changed the material.",
+  "scene": {
+    "type": "energy-terrain",
+    "setup": {
+      "controls": {
+        "eot_m": { "min": 0.6e-9, "max": 2e-9, "init": 2e-9, "scale": "linear" }
+      },
+      "fixed": {
+        "arch": "finfet",
+        "gateLength_m": 20e-9,
+        "bodyThickness_m": 6e-9,
+        "sheetWidth_m": 25e-9,
+        "vdd_V": 0.7,
+        "vth0_V": 0.25,
+        "temperature_K": 300
+      },
+      "crowdSeed": 17,
+      "choices": ["Nothing — walls are walls", "Balls occasionally appear through the wall", "The wall melts"],
+      "correctChoice": 1
+    }
+  },
+  "tools": ["drag-object", "scrub", "probe"],
+  "prediction": {
+    "kind": "choose",
+    "prompt": "You thin the oxide wall far below 1 nm. What do you expect to see the balls do?",
+    "scored": true,
+    "conceptNodes": ["tunneling"]
+  },
+  "targets": [
+    { "metric": "ion_A", "op": ">=", "value": 1.7e-5, "label": "Ion ≥ 17 µA" },
+    { "metric": "leakagePower_W", "op": "<=", "value": 2e-9, "label": "Leakage power ≤ 2 nW" },
+    { "metric": "gateLeakage_A", "op": "<=", "value": 1e-10, "label": "Gate leakage ≤ 0.1 nA" }
+  ],
+  "stars": { "metric": "leakagePower_W", "direction": "min", "two": 1.5e-9, "three": 1e-9 },
+  "insets": [{ "kind": "idvg", "unlockOn": "always" }],
+  "conceptNodes": ["tunneling"]
+}

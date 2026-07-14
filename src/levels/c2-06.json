@@ -1,0 +1,33 @@
+{
+  "schema": 2,
+  "id": "c2-06",
+  "chapter": 2,
+  "title": "The shells around the drain",
+  "intro": "Why can the drain bully a barrier that isn't even next to it? Because potential is ≥2-dimensional: the drain's equipotential shells reach AROUND and UNDER the channel, exactly like the onion layers you cut in the volume box. Here are two charged bodies standing in for a transistor: the strong one is the drain, the weak one is the gate's fence. Cut the volume and probe where the drain's field pushes hardest into the channel region.",
+  "explain": "You just SAW drain-induced barrier lowering as geometry: DIBL exists only because V lives in 2-D/3-D — in a purely 1-D world the barrier would be safe, but the drain's shells flank it from the sides and below. That is also why the architecture fix works: FinFET and gate-all-around wrap the gate's own shells around 3, then 4 sides of the channel, fencing the drain's shells out. The scoring you did in c2-05 (mV of threshold lost per V of drain) is this picture, measured.",
+  "scene": {
+    "type": "field-lab",
+    "setup": {
+      "mode": "volume",
+      "charges": [
+        { "q_nC": 2, "x": 0.78, "y": 0.35, "z": 0.45 },
+        { "q_nC": -1.5, "x": 0.5, "y": 0.62, "z": 0.45 }
+      ],
+      "box": { "x0": 0, "y0": 0, "z0": 0, "x1": 1, "y1": 0.8, "z1": 0.9 }
+    }
+  },
+  "tools": ["cut", "probe"],
+  "prediction": {
+    "kind": "mark",
+    "prompt": "Mark where on the cut face the drain's field digs in hardest.",
+    "scored": true,
+    "conceptNodes": ["potential-terrain"]
+  },
+  "targets": [
+    { "metric": "peakFound", "op": ">=", "value": 1, "label": "Probe the strongest-field point" },
+    { "metric": "cutsMade", "op": ">=", "value": 1, "label": "Move the cut plane" }
+  ],
+  "stars": { "metric": "probesUsed", "direction": "min", "two": 5, "three": 3 },
+  "insets": [],
+  "conceptNodes": ["potential-terrain", "scalar-field-gradient"]
+}

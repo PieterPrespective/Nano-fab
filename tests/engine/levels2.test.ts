@@ -88,6 +88,20 @@ describe('parseLevelV2', () => {
     expectRejects((l) => (l.conceptNodes = []), '$.conceptNodes');
   });
 
+  it('V4b: field-lab (Ch2 prologue) has its own metric namespace', () => {
+    const lab = JSON.parse(JSON.stringify(VALID_LEVEL_V2)) as Record<string, unknown>;
+    lab.scene = { type: 'field-lab', setup: { mode: 'heightmap' } };
+    lab.tools = ['place', 'probe', 'cut'];
+    lab.targets = [{ metric: 'ballsHome', op: '>=', value: 3, label: '3 balls home' }];
+    lab.stars = { metric: 'dropsUsed', direction: 'min', two: 6, three: 4 };
+    expect(parseLevelV2(lab).scene.type).toBe('field-lab');
+    // chamber metrics are NOT valid in a field-lab level
+    expectRejects((l) => {
+      l.scene = { type: 'field-lab', setup: { mode: 'heightmap' } };
+      l.targets = [{ metric: 'hitFraction', op: '>=', value: 0.8, label: 'nope' }];
+    }, '$.targets[0].metric');
+  });
+
   it('V4: metric namespaces differ per scene — wafer3d accepts structureIoU', () => {
     const wafer = JSON.parse(JSON.stringify(VALID_LEVEL_V2)) as Record<string, unknown>;
     wafer.scene = { type: 'wafer3d', setup: {} };
