@@ -128,6 +128,29 @@ scales.
       engine/levels.ts remain as the v1 fixture set and the shared
       controls/params machinery.
 
+### NF3-7b — playtest response (2026-07-17: "terms don't resonate; more
+### potential practice; where's the actual circuit?")
+
+- [x] Compendium: codex.json grown to 16 entries (potential, gradient,
+      equipotentials, thermal crowd, barrier, gate, source/drain, Ion/Ioff,
+      rank-vs-dimension, barrier→Boolean, + the original 6) and given a
+      shell screen (📖 button on the chapter map) — each entry: what it is,
+      why a real chip cares, real numbers.
+- [x] c2-01b "Sculpt the valley": potential-engineering practice — fixed
+      spawns + decoy well, player places POSITIVE ridge charges (negative
+      ones capture, which the explain text turns into the lesson);
+      solver-verified 1-ridge par. Field-lab metrics grew spawnsHome /
+      chargesPlaced.
+- [x] Circuit bridge pulled forward from Ch6 into the Ch2 capstone:
+      `physics/inverter.ts` (CMOS VTC by bisection on the SAME drainCurrent;
+      symmetric-PMOS simplification stated; metrics vm/gain/unity-gain noise
+      margins/swing — anchor-tested), scene type `logic-inverter`, runtime
+      with complementary n/p terrains + live VTC + OUT lamp, level c2-11
+      "Two hills make a NOT gate" (leaky planar init fails gain 2.9 → GAA
+      fixes it; new `switch-logic` mastery node). NAND/functional
+      completeness told in explain + compendium; a playable NAND/ring
+      oscillator is a candidate for Ch6's device-bridge level.
+
 ## NF3-8 — Ch3+Ch4 Waves & Photons
 
 - [ ] `physics/waves.ts` (two-source fringe-spacing anchor test λL/d;

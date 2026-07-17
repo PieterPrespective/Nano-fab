@@ -5,6 +5,7 @@
  * energy terrain (strangler step 3 complete).
  */
 
+import { parseCodex } from '../engine/codex';
 import { parseLevelV2, type LevelV2 } from '../engine/levels2';
 import {
   loadProgress,
@@ -14,11 +15,12 @@ import {
   type Progress,
   type ProgressStore,
 } from '../engine/progress';
-import { rawLevelsV2 } from '../levels/index';
+import { rawCodex, rawLevelsV2 } from '../levels/index';
 import { theme } from '../render/theme';
 import { chapterMastery, chapterUnlocked } from './mastery';
 import { mountChamberScene, type ChamberHooks } from './scenes/chamberScene';
 import { mountFieldScene, type FieldHooks } from './scenes/fieldScene';
+import { mountInverterScene, type InverterHooks } from './scenes/inverterScene';
 import { mountTerrainScene, type TerrainHooks } from './scenes/terrainScene';
 
 const CHAPTERS: Array<{ n: number; title: string; blurb: string; ready: boolean }> = [
@@ -30,11 +32,12 @@ const CHAPTERS: Array<{ n: number; title: string; blurb: string; ready: boolean 
   { n: 6, title: 'The Fab', blurb: 'Build a transistor from blank silicon, step by step in 3D.', ready: false },
 ];
 
-export type AnySceneHooks = ChamberHooks | FieldHooks | TerrainHooks;
+export type AnySceneHooks = ChamberHooks | FieldHooks | TerrainHooks | InverterHooks;
 
 export interface ShellHooks {
   openChapter(n: number): void;
   openLevel(id: string): AnySceneHooks | null;
+  openCompendium(): void;
   home(): void;
   state(): { screen: string; levelId?: string };
 }
@@ -55,7 +58,7 @@ export function startShell(root: HTMLElement): ShellHooks {
   const byChapter: Record<number, string[]> = {};
   for (const l of levels) (byChapter[l.chapter] ??= []).push(l.id);
 
-  let screen: 'chapters' | 'levels' | 'scene' = 'chapters';
+  let screen: 'chapters' | 'levels' | 'scene' | 'compendium' = 'chapters';
   let currentChapter = 1;
   let currentLevel: string | undefined;
   let sceneHooks: AnySceneHooks | null = null;
@@ -83,7 +86,8 @@ export function startShell(root: HTMLElement): ShellHooks {
       <div style="min-height:100%;background:${theme.bg};color:${theme.text};font-family:system-ui;padding:18px;box-sizing:border-box;overflow:auto">
         <div style="display:flex;align-items:baseline;gap:12px">
           <div style="font-size:26px;font-weight:700">NanoFab</div>
-          <div style="color:${theme.textDim};font-size:13px">from a thrown ball to an EUV scanner</div>
+          <div style="color:${theme.textDim};font-size:13px;flex:1">from a thrown ball to an EUV scanner</div>
+          <button data-compendium style="background:${theme.panelRaised};color:${theme.accent};border:1px solid ${theme.stroke};border-radius:8px;padding:8px 14px;font-weight:600">📖 Compendium</button>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:16px">
           ${cards}
@@ -92,6 +96,32 @@ export function startShell(root: HTMLElement): ShellHooks {
     root.querySelectorAll<HTMLButtonElement>('button[data-ch]').forEach((b) => {
       b.onclick = () => hooks.openChapter(Number(b.dataset.ch));
     });
+    (root.querySelector('button[data-compendium]') as HTMLButtonElement).onclick = () => hooks.openCompendium();
+  }
+
+  function renderCompendium(): void {
+    screen = 'compendium';
+    const entries = parseCodex(rawCodex);
+    const cards = entries
+      .map(
+        (e) => `
+        <div style="background:${theme.panelRaised};border:1px solid ${theme.stroke};border-radius:12px;padding:16px 18px">
+          <div style="font-size:16px;font-weight:700;color:${theme.accent};margin-bottom:8px">${e.title}</div>
+          <div style="font-size:14px;line-height:1.55;color:${theme.text}">${e.body}</div>
+          ${e.realNumbers.length ? `<ul style="margin:10px 0 0;padding-left:18px;color:${theme.textDim};font-size:12.5px;line-height:1.6">${e.realNumbers.map((r) => `<li>${r}</li>`).join('')}</ul>` : ''}
+        </div>`,
+      )
+      .join('');
+    root.innerHTML = `
+      <div style="min-height:100%;background:${theme.bg};color:${theme.text};font-family:system-ui;padding:18px;box-sizing:border-box;overflow:auto">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button data-back style="background:${theme.panelRaised};color:${theme.text};border:1px solid ${theme.stroke};border-radius:8px;padding:8px 14px;font-weight:600">‹ Chapters</button>
+          <div style="font-size:20px;font-weight:700">📖 Compendium</div>
+          <div style="color:${theme.textDim};font-size:13px">the terms, what they mean, and the real numbers behind them</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-top:16px;padding-bottom:24px">${cards}</div>
+      </div>`;
+    (root.querySelector('button[data-back]') as HTMLButtonElement).onclick = () => renderChapters();
   }
 
   function renderLevels(chapter: number): void {
@@ -147,6 +177,9 @@ export function startShell(root: HTMLElement): ShellHooks {
       case 'energy-terrain':
         sceneHooks = mountTerrainScene(root, level, callbacks);
         break;
+      case 'logic-inverter':
+        sceneHooks = mountInverterScene(root, level, callbacks);
+        break;
       default:
         sceneHooks = mountChamberScene(root, level, callbacks);
     }
@@ -159,6 +192,7 @@ export function startShell(root: HTMLElement): ShellHooks {
       const level = levels.find((l) => l.id === id);
       return level ? openScene(level) : null;
     },
+    openCompendium: () => renderCompendium(),
     home: () => renderChapters(),
     state: () => ({ screen, levelId: currentLevel }),
   };

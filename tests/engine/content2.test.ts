@@ -20,6 +20,7 @@ import {
   fieldLabMetrics,
   initialFieldLabState,
   parseFieldLabSetup,
+  placeChargeHM,
   probeOrientation,
   probeVolume,
   setCut,
@@ -29,6 +30,11 @@ import {
   type TensorSetup,
   type VolumeSetup,
 } from '../../src/scene/fieldlab';
+import {
+  initialInverterValues,
+  inverterLabMetrics,
+  parseInverterSetup,
+} from '../../src/scene/inverterlab';
 import {
   initialTerrainValues,
   parseTerrainSetup,
@@ -42,6 +48,7 @@ interface Solution {
   place?: Array<{ x: number; y: number }>;
   shots?: Array<{ vx: number; vy: number }>;
   drops?: Array<{ x: number; y: number }>;
+  ridges?: Array<{ x: number; y: number }>;
   cut?: { axis: CutAxis; frac: number };
   probes?: Array<{ u: number; v: number }>;
   angles_deg?: number[];
@@ -63,6 +70,7 @@ function runSolution(level: LevelV2, sol: Solution): Record<string, number> {
       const setup = parseFieldLabSetup(level.scene.setup);
       let st: FieldLabState = initialFieldLabState();
       if (sol.cut) st = setCut(st, sol.cut.axis, sol.cut.frac);
+      for (const r of sol.ridges ?? []) st = placeChargeHM(setup as HeightmapSetup, st, r.x, r.y);
       for (const d of sol.drops ?? []) st = dropBall(setup as HeightmapSetup, st, d.x, d.y);
       for (const p of sol.probes ?? []) st = probeVolume(setup as VolumeSetup, st, p.u, p.v);
       for (const a of sol.angles_deg ?? []) {
@@ -73,6 +81,10 @@ function runSolution(level: LevelV2, sol: Solution): Record<string, number> {
     case 'energy-terrain': {
       const setup = parseTerrainSetup(level.scene.setup);
       return terrainMetrics(setup, { ...initialTerrainValues(setup), ...(sol.values ?? {}) });
+    }
+    case 'logic-inverter': {
+      const setup = parseInverterSetup(level.scene.setup);
+      return inverterLabMetrics(setup, { ...initialInverterValues(setup), ...(sol.values ?? {}) });
     }
     default:
       throw new Error(`no runner for scene "${level.scene.type}"`);
@@ -90,6 +102,10 @@ function baseline(level: LevelV2): Record<string, number> {
       const setup = parseTerrainSetup(level.scene.setup);
       return terrainMetrics(setup, initialTerrainValues(setup));
     }
+    case 'logic-inverter': {
+      const setup = parseInverterSetup(level.scene.setup);
+      return inverterLabMetrics(setup, initialInverterValues(setup));
+    }
     default:
       throw new Error(`no baseline for scene "${level.scene.type}"`);
   }
@@ -99,17 +115,18 @@ describe('chapter content (v2)', () => {
   it('ids are unique and in play order; scene types match the chapter design', () => {
     expect(levels.map((l) => l.id)).toEqual([
       'c1-01', 'c1-02', 'c1-03', 'c1-04',
-      'c2-01', 'c2-02', 'c2-03', 'c2-04', 'c2-05',
-      'c2-06', 'c2-07', 'c2-08', 'c2-09', 'c2-10',
+      'c2-01', 'c2-01b', 'c2-02', 'c2-03', 'c2-04', 'c2-05',
+      'c2-06', 'c2-07', 'c2-08', 'c2-09', 'c2-10', 'c2-11',
     ]);
     for (const l of levels.filter((x) => x.chapter === 1)) {
       expect(l.scene.type).toBe('particle-chamber');
     }
     const ch2Types = levels.filter((x) => x.chapter === 2).map((l) => l.scene.type);
     expect(ch2Types).toEqual([
-      'field-lab', 'field-lab', 'field-lab',
+      'field-lab', 'field-lab', 'field-lab', 'field-lab',
       'energy-terrain', 'energy-terrain', 'field-lab',
       'energy-terrain', 'energy-terrain', 'energy-terrain', 'energy-terrain',
+      'logic-inverter',
     ]);
   });
 

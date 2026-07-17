@@ -54,5 +54,97 @@
       "Dennard scaling breakdown: ~2005–2007",
       "Projected dark silicon at 8 nm: >50% (Esmaeilzadeh et al., ISCA 2011)"
     ]
+  },
+  {
+    "id": "electric-potential",
+    "title": "Potential — one number everywhere",
+    "body": "Electric potential V is the landscape every charged particle lives on: at each point in space it is ONE plain number — the potential energy a unit of charge would have there (joules per coulomb = volts). It has no direction and no arrow; it is a scalar field, whether the space is a 1-D wire, a 2-D surface, or a 3-D volume. Everything else in this game is a view of V: contour rings are 'same number here' lines, the terrain height in Chapter 2 IS V for an electron (times its charge), and a 9 V battery simply holds its two terminals 9 apart on this landscape.",
+    "realNumbers": [
+      "1 volt = 1 joule per coulomb",
+      "A logic supply today: 0.7–1.0 V; a wall outlet: 230/120 V; a neuron's membrane: ~0.07 V"
+    ]
+  },
+  {
+    "id": "gradient-field",
+    "title": "Downhill is a vector: E = −∇V",
+    "body": "Ask the landscape 'which way is downhill, and how steep?' — the answer is the gradient ∇V, and the electric field is exactly its downhill version: E = −∇V. That is why a ball (positive charge) always rolls perpendicular to contour lines, and why the field is strong where contours crowd together: many lines per meter = many volts per meter. V stores one number per point; E is the free bonus you get by comparing neighbouring points. Nothing new was added — a scalar field and its slope.",
+    "realNumbers": [
+      "Field units: volts per meter",
+      "Air sparks at ~3 MV/m; the oxide in a transistor routinely holds ~1 GV/m without breaking"
+    ]
+  },
+  {
+    "id": "thermal-crowd",
+    "title": "The thermal crowd",
+    "body": "Any object above absolute zero is a mosh pit: its electrons constantly jiggle with random kinetic energies, drawn from the Maxwell–Boltzmann distribution. Most have around kT of energy (about 26 meV at room temperature), but the distribution has an exponential TAIL — a few electrons are always briefly much hotter. The white balls at the transistor's source are this crowd. They matter because the tail never runs out: however tall you build a barrier, the fraction of the crowd that can hop it is exp(−Eb/kT) — small, but never zero. Every 'off' transistor leaks exactly this way.",
+    "realNumbers": [
+      "kT at 300 K ≈ 25.9 meV",
+      "Fraction of the crowd above a 0.26 eV barrier: exp(−10) ≈ 4.5×10⁻⁵ — and a chip has billions of transistors trying every picosecond"
+    ]
+  },
+  {
+    "id": "the-barrier",
+    "title": "The barrier — a hill made of energy",
+    "body": "Between a transistor's source (full of electrons) and its drain (which would love to receive them) sits an energy barrier: a region where an electron would need extra energy to exist, drawn in Chapter 2 as a hill. It is not a physical wall — it is the conduction-band edge, the potential landscape seen by electrons in the silicon, set up by doping and by the voltages on the terminals. Electrons cross it the way the ball crowd does: only the thermal tail with energy above the barrier gets over. Barrier tall = transistor OFF (a trickle leaks). Barrier low = ON (the crowd pours). The entire digital world is built on moving this one hill up and down.",
+    "realNumbers": [
+      "Typical OFF barrier: ~0.2–0.4 eV",
+      "Lowering the barrier by kT·ln10 ≈ 60 meV lets 10× more electrons over — the subthreshold swing"
+    ]
+  },
+  {
+    "id": "the-gate",
+    "title": "The gate — the knob on the hill",
+    "body": "The gate is a metal electrode sitting on top of the channel, separated by a nanometers-thin insulating oxide. It touches nothing electrically — it works purely by field: putting a positive voltage on it pulls the energy landscape underneath it DOWN (for electrons), lowering the barrier. It is one plate of a capacitor whose other plate is the channel itself. That is the whole trick of the MOSFET: a voltage on an insulated knob moves a hill it never touches, and the hill gates a current a million times bigger than anything the knob supplies. 'Gate length' is how long this knob is along the electron's path — shorter switches faster and packs denser, but a short knob grips its hill weakly and the drain starts pulling the hilltop down instead (DIBL).",
+    "realNumbers": [
+      "Gate oxide thickness: ~1 nm equivalent — about 5 silicon atoms",
+      "Gate length at the \"5nm\" node: ~18 nm (IRDS 2021)",
+      "Gate capacitance per device: ~50 attofarads"
+    ]
+  },
+  {
+    "id": "source-drain",
+    "title": "Source & drain — the crowd and the cliff",
+    "body": "The source is the reservoir: a heavily doped region holding the thermal crowd of electrons at (roughly) energy zero. The drain is the destination, held at a POSITIVE voltage by the supply — which for electrons means a cliff DOWNWARD in energy of qVds. Electrons that hop the barrier fall down this cliff and are collected; that flow is the drain current. The names are literal plumbing: the source sources carriers, the drain drains them. In Chapter 2's terrain the crowd jitters on the left plateau, the cliff is on the right, and the barrier in between is the only thing standing between your battery and a dead short.",
+    "realNumbers": [
+      "Vds in modern logic: ~0.7 V, so the cliff is ~0.7 eV deep",
+      "ON current: ~500 µA per µm of device width — ~10¹⁴ electrons per second in a real device"
+    ]
+  },
+  {
+    "id": "ion-ioff",
+    "title": "Ion / Ioff — speed versus battery life",
+    "body": "The two currents that grade every transistor: Ion is what flows when the device is fully ON — it charges the next gate's capacitance, so bigger Ion = faster logic (delay ≈ C·V/Ion). Ioff is what still leaks when the device is OFF — it does nothing useful, in every one of billions of transistors, all the time, so Ioff = standby power = battery drain and heat. They are coupled through the same barrier: lowering the threshold buys Ion but exponentially inflates Ioff. Ion/Ioff ratio (10⁴–10⁶ for logic) is the single number that says 'this is a usable switch'.",
+    "realNumbers": [
+      "Logic targets: Ion ~ hundreds of µA/µm, Ioff ~ 0.1–100 nA/µm depending on the market",
+      "A phone SoC leaks watts if Ioff averages just ~1 nA across ~10¹⁰ transistors — hence power gating"
+    ]
+  },
+  {
+    "id": "barrier-to-boolean",
+    "title": "From barrier to Boolean — how hills compute",
+    "body": "A transistor is not yet a computer — but two are. Stack an n-type device (barrier drops when input goes HIGH) under a mirrored p-type device (barrier drops when input goes LOW), tie both gates to the input and both drains to the output: that is a CMOS inverter, the NOT gate. Input high → the bottom hill flattens and drags the output to 0; input low → the top hill flattens and lifts the output to Vdd. At any moment one of the two is OFF — only its barrier leak flows, which is why CMOS conquered the world: it burns power mainly while switching. Every metric you tuned in Chapter 2 is a logic property in disguise: Ion = how fast the output slams to the rail, Ioff = standby drain, subthreshold swing & DIBL = how crisply the gate answers 'is this a 0 or a 1?'. Wire 4 transistors instead of 2 and you have NAND; NAND is functionally complete — everything your computer does is these hills, moved in patterns.",
+    "realNumbers": [
+      "CMOS inverter: 2 transistors; NAND: 4; a phone SoC: ~2×10¹⁰",
+      "Gate delay ≈ C·Vdd/Ion — why Ion targets exist at all",
+      "Standby power = Σ Ioff·Vdd over every off transistor on the chip"
+    ]
+  },
+  {
+    "id": "rank-vs-dimension",
+    "title": "Rank vs. dimension — the tensor confusion, retired",
+    "body": "Two independent dials describe a physical quantity: the DIMENSION of the domain it lives on (a 1-D wire, a 2-D map, a 3-D volume) and its RANK (how many numbers it hands you per point). Potential is rank 0 — one number — no matter how many dimensions the domain has; 'V in 3D' is a scalar field on a 3-D domain, never a '3-D tensor'. The field E is rank 1 (a vector: one arrow). Rank 2 appears only when the RESPONSE to a direction depends on direction — like strained silicon, where current refuses to follow E unless it points along a strain axis; capturing that takes a 3×3 matrix σ̿ with J = σ̿·E. Ask 'does the answer need a direction? does it change if I rotate the question?' — that, not the dimension of space, is what sets the rank.",
+    "realNumbers": [
+      "Strained silicon has boosted mobility in production since the 90 nm node (2003)",
+      "Rank 0/1/2 hand you 1 / 3 / 9 numbers per point in 3-D space"
+    ]
+  },
+  {
+    "id": "equipotential-shells",
+    "title": "Equipotentials — the shells that bully barriers",
+    "body": "Join all points sharing the same V and you get equipotential surfaces: rings on a map, nested shells in a volume. Their spacing is a field meter: shells a distance d apart with ΔV between them mean E ≈ ΔV/d — crowded shells, strong field. Around a point charge the spacing grows like r² (Coulomb's 1/r² in disguise). The payoff for chips: shells are ≥2-D objects, so a drain's shells reach AROUND a short gate's barrier and pull the hilltop down from the sides — DIBL is shell geometry, and FinFET/GAA are shell fences: the gate wraps its own equipotentials around 3, then 4 sides of the channel to keep the drain's out.",
+    "realNumbers": [
+      "E ≈ ΔV / shell spacing",
+      "Point charge: spacing between equal-ΔV shells grows ∝ r²"
+    ]
   }
 ]

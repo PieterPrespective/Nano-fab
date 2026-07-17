@@ -1,0 +1,33 @@
+{
+  "schema": 2,
+  "id": "c2-01b",
+  "chapter": 2,
+  "title": "Sculpt the valley",
+  "intro": "Reading the landscape was step one — now BUILD it. Three balls release from the flags on the left. They should reach the home basin on the right, but a decoy valley keeps stealing them. You cannot dig: negative charges make holes, and holes CAPTURE balls. Instead you get positive charges — hills. Place ridges to bend the watershed so all three release points drain home. Fewer ridges, more stars.",
+  "explain": "You just did potential engineering: superposition means every charge's landscape simply ADDS, so a positive charge is a hill you can put anywhere, and a hill upstream redirects entire watersheds without touching the ball. Notice what failed if you tried placing charges as stepping stones — anything attractive becomes a trap, because rolling downhill ends at the FIRST minimum, not the nicest one. Real devices are sculpted exactly this way: dopant ions implanted into silicon are fixed charges whose only job is to reshape the energy landscape that electrons roll through. You will fire those dopants yourself in Chapter 6.",
+  "scene": {
+    "type": "field-lab",
+    "setup": {
+      "mode": "heightmap",
+      "charges": [
+        { "q_nC": -4, "x": 0.8, "y": 0.38 },
+        { "q_nC": -1.2, "x": 0.35, "y": 0.55 }
+      ],
+      "window": { "x0": 0, "y0": 0, "x1": 1, "y1": 0.75 },
+      "home": { "x": 0.8, "y": 0.38, "r": 0.07 },
+      "spawns": [
+        { "x": 0.06, "y": 0.15 },
+        { "x": 0.06, "y": 0.38 },
+        { "x": 0.06, "y": 0.6 }
+      ],
+      "placeable": { "count": 3, "q_nC": 2.5 }
+    }
+  },
+  "tools": ["place", "probe"],
+  "targets": [
+    { "metric": "spawnsHome", "op": ">=", "value": 3, "label": "All 3 release points drain home" }
+  ],
+  "stars": { "metric": "chargesPlaced", "direction": "min", "two": 3, "three": 1 },
+  "insets": [],
+  "conceptNodes": ["scalar-field-gradient"]
+}

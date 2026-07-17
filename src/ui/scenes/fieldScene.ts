@@ -21,6 +21,7 @@ import {
   heightmapEnv,
   initialFieldLabState,
   parseFieldLabSetup,
+  placeChargeHM,
   probeOrientation,
   probeVolume,
   setCut,
@@ -50,6 +51,7 @@ import { attachGesturePump, btnCss, esc, overlayCard, type SceneCallbacks } from
 
 export interface FieldHooks {
   drop(x: number, y: number): void;
+  placeAt(x: number, y: number): void;
   cut(axis: CutAxis, frac: number): void;
   probeAt(u: number, v: number): void;
   rotate(theta: number): void;
@@ -113,6 +115,7 @@ export function mountFieldScene(root: HTMLElement, level: LevelV2, callbacks: Sc
   (root.querySelector('#fs-reset') as HTMLElement).onclick = () => {
     state = initialFieldLabState();
     slabTheta = 0;
+    refreshSpawnPaths();
     refreshEval();
     draw();
   };
@@ -175,7 +178,18 @@ export function mountFieldScene(root: HTMLElement, level: LevelV2, callbacks: Sc
 
   // ---------- sampled field + shading cache ----------
   const GRID = 81;
-  let fieldCache: { f: GridField; img: HTMLCanvasElement; levels: number[]; frac: number; axis: CutAxis } | null = null;
+  let fieldCache: { f: GridField; img: HTMLCanvasElement; levels: number[]; frac: number; axis: CutAxis; placedKey: string } | null = null;
+  const placedKey = (): string => state.placed.map((c) => `${c.x_m.toFixed(4)},${c.y_m.toFixed(4)}`).join(';');
+  /** Spawn descent previews (sculpt variant), recomputed on placement. */
+  let spawnPaths: Array<{ path: Pt[]; home: boolean }> = [];
+  function refreshSpawnPaths(): void {
+    if (setup.mode !== 'heightmap' || !setup.spawns) return;
+    spawnPaths = setup.spawns.map((sp) => {
+      const path = descentPathForDrop(setup, sp.x, sp.y, state.placed);
+      const end = path[path.length - 1]!;
+      return { path, home: Math.hypot(end.x - setup.home.x, end.y - setup.home.y) <= setup.home.r };
+    });
+  }
 
   function faceValue(u: number, v: number, frac: number): number {
     const s = setup as VolumeSetup;
@@ -192,11 +206,14 @@ export function mountFieldScene(root: HTMLElement, level: LevelV2, callbacks: Sc
 
   function ensureField(): NonNullable<typeof fieldCache> {
     const frac = previewFrac ?? state.cutFrac;
-    if (fieldCache && fieldCache.frac === frac && fieldCache.axis === state.cutAxis) return fieldCache;
+    const pk = placedKey();
+    if (fieldCache && fieldCache.frac === frac && fieldCache.axis === state.cutAxis && fieldCache.placedKey === pk) {
+      return fieldCache;
+    }
     const win = worldWindow();
     const fn =
       setup.mode === 'heightmap'
-        ? (x: number, y: number) => potentialAt(x, y, heightmapEnv(setup))
+        ? (x: number, y: number) => potentialAt(x, y, heightmapEnv(setup, state.placed))
         : (u: number, v: number) => faceValue(u, v, frac);
     const f = sampleField(fn, win.x0, win.y0, win.x1, win.y1, GRID, GRID);
     // percentile anchors: the singular 1/r peak must not blow out the range
@@ -231,7 +248,7 @@ export function mountFieldScene(root: HTMLElement, level: LevelV2, callbacks: Sc
     for (let i = 1; i < N_LEVELS; i++) {
       levels.push(lo + ((hi - lo) * i) / N_LEVELS);
     }
-    fieldCache = { f, img, levels, frac, axis: state.cutAxis };
+    fieldCache = { f, img, levels, frac, axis: state.cutAxis, placedKey: pk };
     return fieldCache;
   }
 
@@ -239,7 +256,9 @@ export function mountFieldScene(root: HTMLElement, level: LevelV2, callbacks: Sc
   function refreshEval(): void {
     const metrics = fieldLabMetrics(setup, state);
     evaln = evaluateMetrics(level.targets, level.stars, metrics);
-    if (setup.mode === 'heightmap') {
+    if (setup.mode === 'heightmap' && setup.placeable) {
+      statsEl.textContent = `release points home ${metrics.spawnsHome}/${setup.spawns?.length ?? 0} · ridges ${metrics.chargesPlaced}/${setup.placeable.count}`;
+    } else if (setup.mode === 'heightmap') {
       statsEl.textContent = `balls home ${metrics.ballsHome}/${setup.ballsRequired} · drops ${metrics.dropsUsed}`;
     } else if (setup.mode === 'volume') {
       statsEl.textContent = `peak ${metrics.peakFound ? 'FOUND ✓' : 'not yet'} · probes ${metrics.probesUsed} · cuts ${metrics.cutsMade}`;
@@ -311,7 +330,8 @@ export function mountFieldScene(root: HTMLElement, level: LevelV2, callbacks: Sc
     if (beat !== 'play' && beat !== 'formalize') return;
     if (setup.mode === 'heightmap' && g.kind === 'tap') {
       const w = toWorld(g.x, g.y);
-      hooks.drop(w.x, w.y);
+      if (setup.placeable) hooks.placeAt(w.x, w.y);
+      else hooks.drop(w.x, w.y);
     } else if (setup.mode === 'volume' && g.kind === 'tap') {
       const w = toWorld(g.x, g.y);
       hooks.probeAt(w.x, w.y);
@@ -409,7 +429,9 @@ export function mountFieldScene(root: HTMLElement, level: LevelV2, callbacks: Sc
       };
     } else if (tutor.beat === 'play' && actionsTaken() === 0) {
       const coach =
-        setup.mode === 'heightmap'
+        setup.mode === 'heightmap' && setup.placeable
+          ? '<b>Tap</b> to place a ridge (+ charge) that deflects the flow — tap a placed ridge to pick it back up. The dashed previews show where each release point drains RIGHT NOW.'
+          : setup.mode === 'heightmap'
           ? '<b>Tap anywhere</b> to drop a ball — it rolls straight downhill (−∇V). Long-press to probe the landscape.'
           : setup.mode === 'volume'
             ? 'Drag the <b>cut plane slider</b> below, then <b>tap the face</b> to probe the field. Shells crowd where E is strong.'
@@ -508,6 +530,46 @@ export function mountFieldScene(root: HTMLElement, level: LevelV2, callbacks: Sc
       }
     }
     if (setup.mode === 'heightmap') {
+      // sculpt variant: spawn flags, live descent previews, placed ridges
+      if (setup.placeable) {
+        spawnPaths.forEach((sp) => {
+          ctx.strokeStyle = sp.home ? 'rgba(74,222,128,0.65)' : 'rgba(224,93,93,0.55)';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 5]);
+          ctx.beginPath();
+          sp.path.forEach((p, i) => {
+            const s = toScreen(p.x, p.y);
+            i === 0 ? ctx.moveTo(s.x, s.y) : ctx.lineTo(s.x, s.y);
+          });
+          ctx.stroke();
+          ctx.setLineDash([]);
+        });
+        (setup.spawns ?? []).forEach((sp, i) => {
+          const s = toScreen(sp.x, sp.y);
+          const home = spawnPaths[i]?.home ?? false;
+          ctx.fillStyle = home ? theme.good : '#e6edf3';
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = home ? theme.good : theme.textDim;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, 12, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+        for (const c of state.placed) {
+          const s = toScreen(c.x_m, c.y_m);
+          ctx.fillStyle = 'rgba(224,93,93,0.9)';
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, 11, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.font = '700 14px system-ui';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('+', s.x, s.y + 0.5);
+        }
+      }
       // home basin ring
       const hs = toScreen(setup.home.x, setup.home.y);
       ctx.strokeStyle = theme.good;
@@ -716,6 +778,16 @@ export function mountFieldScene(root: HTMLElement, level: LevelV2, callbacks: Sc
       refreshEval();
       renderOverlays();
     },
+    placeAt: (x, y) => {
+      if (setup.mode !== 'heightmap' || !setup.placeable) return;
+      if (tutor.beat === 'intro' || tutor.beat === 'predict') return;
+      maybeReveal();
+      state = placeChargeHM(setup, state, x, y);
+      refreshSpawnPaths();
+      refreshEval();
+      renderOverlays();
+      draw();
+    },
     cut: (axis, frac) => {
       if (setup.mode !== 'volume' || tutor.beat === 'intro') return;
       state = setCut(state, axis, frac);
@@ -784,6 +856,7 @@ export function mountFieldScene(root: HTMLElement, level: LevelV2, callbacks: Sc
     }),
   };
 
+  refreshSpawnPaths();
   refreshEval();
   renderOverlays();
   resize();

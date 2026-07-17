@@ -4,6 +4,7 @@ import {
   fieldLabMetrics,
   initialFieldLabState,
   parseFieldLabSetup,
+  placeChargeHM,
   probeOrientation,
   probeVolume,
   setCut,
@@ -76,6 +77,68 @@ describe('heightmap mode (P1: balls roll along −∇V)', () => {
     const m = fieldLabMetrics(setup, st);
     expect(m.dropsUsed).toBe(3);
     expect(m.ballsHome).toBe(2);
+  });
+});
+
+/**
+ * Sculpt-the-valley variant: fixed spawns, a decoy well, and a charge
+ * budget — the player shapes the landscape instead of reading it.
+ */
+const SCULPT_JSON = {
+  mode: 'heightmap',
+  charges: [
+    { q_nC: -4, x: 0.8, y: 0.38 }, // the home well (fixed)
+    { q_nC: -1.2, x: 0.35, y: 0.55 }, // the decoy well (fixed)
+  ],
+  window: { x0: 0, y0: 0, x1: 1, y1: 0.75 },
+  home: { x: 0.8, y: 0.38, r: 0.07 },
+  spawns: [
+    { x: 0.06, y: 0.15 },
+    { x: 0.06, y: 0.38 },
+    { x: 0.06, y: 0.6 },
+  ],
+  placeable: { count: 3, q_nC: 2.5 }, // positive: ridges that deflect
+};
+
+describe('heightmap sculpting (place charges to steer)', () => {
+  const setup = parseFieldLabSetup(SCULPT_JSON) as HeightmapSetup;
+
+  it('parses spawns and the placement budget', () => {
+    expect(setup.spawns).toHaveLength(3);
+    expect(setup.placeable).toEqual({ count: 3, q_C: 2.5e-9 });
+  });
+
+  it('with no placed charges, every spawn rolls to the decoy — none home', () => {
+    const m = fieldLabMetrics(setup, initialFieldLabState());
+    expect(m.spawnsHome).toBe(0);
+    expect(m.chargesPlaced).toBe(0);
+  });
+
+  it('placement respects the budget; placing on an existing charge removes it', () => {
+    let st = initialFieldLabState();
+    st = placeChargeHM(setup, st, 0.8, 0.38);
+    st = placeChargeHM(setup, st, 0.5, 0.2);
+    st = placeChargeHM(setup, st, 0.5, 0.6);
+    st = placeChargeHM(setup, st, 0.9, 0.1); // over budget → ignored
+    expect(st.placed).toHaveLength(3);
+    st = placeChargeHM(setup, st, 0.502, 0.602); // near an existing → removes
+    expect(st.placed).toHaveLength(2);
+  });
+
+  it('a positive ridge reshapes the watershed: the solver-found placement wins all 3', () => {
+    // negative charges CAPTURE balls (they are minima); positive ridges
+    // deflect — the reason the level hands out positive charges only
+    let st = initialFieldLabState();
+    st = placeChargeHM(setup, st, 0.08, 0.64);
+    const m = fieldLabMetrics(setup, st);
+    expect(m.spawnsHome).toBe(3);
+    expect(m.chargesPlaced).toBe(1);
+  });
+
+  it('drops in plain heightmap mode still work when nothing is placeable', () => {
+    const plain = parseFieldLabSetup(HEIGHTMAP_JSON) as HeightmapSetup;
+    const st = dropBall(plain, initialFieldLabState(), 0.85, 0.45);
+    expect(st.drops[0]!.home).toBe(true);
   });
 });
 

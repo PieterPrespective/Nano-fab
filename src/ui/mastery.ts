@@ -9,7 +9,7 @@ import type { Progress } from '../engine/progress';
 
 export const CHAPTER_NODES: Record<number, ConceptNode[]> = {
   1: ['charge-force', 'field-map'],
-  2: ['scalar-field-gradient', 'potential-terrain', 'boltzmann-tail', 'tunneling'],
+  2: ['scalar-field-gradient', 'potential-terrain', 'boltzmann-tail', 'tunneling', 'switch-logic'],
   3: ['superposition', 'diffraction-limit'],
   4: ['photon-shot-noise', 'rls-triangle'],
   5: ['scurve-motion', 'settling', 'overlay'],

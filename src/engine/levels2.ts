@@ -18,6 +18,7 @@ export const SCENE_TYPES = [
   'particle-chamber',
   'field-lab',
   'energy-terrain',
+  'logic-inverter',
   'ripple-tank',
   'resist-exposure',
   'scanner-stage',
@@ -56,7 +57,8 @@ export type InsetKind = (typeof INSET_KINDS)[number];
 export const METRIC_REGISTRY: Record<SceneType, readonly string[]> = {
   'energy-terrain': METRIC_KEYS, // scored by the phase-1 device model
   'particle-chamber': ['hits', 'hitFraction', 'landingEnergy_J', 'shotsUsed'],
-  'field-lab': ['ballsHome', 'dropsUsed', 'cutsMade', 'probesUsed', 'peakFound', 'orientationsProbed'],
+  'field-lab': ['ballsHome', 'dropsUsed', 'spawnsHome', 'chargesPlaced', 'cutsMade', 'probesUsed', 'peakFound', 'orientationsProbed'],
+  'logic-inverter': ['vm_V', 'gain', 'nmLow_V', 'nmHigh_V', 'swing_V'],
   'ripple-tank': ['minPitch_m', 'epe_m', 'contrast'],
   'resist-exposure': ['defectCount', 'ler_m', 'dose_Jm2', 'throughput_wph'],
   'scanner-stage': ['moveSettle_s', 'overlay_m', 'wafersPerHour'],
@@ -71,6 +73,7 @@ export const CONCEPT_NODES = [
   'potential-terrain',
   'boltzmann-tail',
   'tunneling',
+  'switch-logic',
   'superposition',
   'diffraction-limit',
   'photon-shot-noise',

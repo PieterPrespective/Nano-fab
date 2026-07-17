@@ -1,0 +1,43 @@
+{
+  "schema": 2,
+  "id": "c2-11",
+  "chapter": 2,
+  "title": "Two hills make a NOT gate",
+  "intro": "Time to compute with your hills. Below: an n-type transistor pulling the output DOWN, and its mirror-twin p-type pulling it UP, both gates wired to the same input — a CMOS inverter, the NOT gate. Slide the input and watch the two terrains trade places: whichever hill is flat wins the output. Your devices are too leaky to make clean logic though — the transfer curve is a lazy slope, not a cliff. Fix the transistor (architecture, gate length) until the gate snaps: gain ≥ 10 and a low-side noise margin ≥ 290 mV.",
+  "explain": "This is the payoff of the whole chapter. GAIN above 1 at the switching point is what makes digital logic possible at all: a slightly-degraded 1 entering the gate leaves as a nearly-perfect 0, so signals REGENERATE through millions of gates instead of eroding — that is why your computer can be wrong never, not just rarely. NOISE MARGIN is how much garbage a logic level can absorb before a gate misreads it; DIBL and soft subthreshold slopes eat it directly, which is why the leaky planar device made a mushy inverter. And notice the CMOS trick: at either rail one of the two hills is always tall, so the only standing current is your old enemy Ioff. Two of these make NOT, four make NAND, and NAND is functionally complete — from here on, everything is wiring.",
+  "scene": {
+    "type": "logic-inverter",
+    "setup": {
+      "controls": {
+        "arch": { "options": ["planar", "finfet", "gaa"], "init": "planar" },
+        "gateLength_m": { "min": 14e-9, "max": 20e-9, "init": 16e-9, "scale": "linear" }
+      },
+      "fixed": {
+        "eot_m": 0.9e-9,
+        "bodyThickness_m": 5e-9,
+        "sheetWidth_m": 20e-9,
+        "nStack": 2,
+        "vdd_V": 0.7,
+        "vth0_V": 0.25,
+        "temperature_K": 300
+      },
+      "crowdSeed": 29,
+      "choices": ["Output goes HIGH — it inverts", "Output goes LOW — it follows", "Output floats at half"],
+      "correctChoice": 0
+    }
+  },
+  "tools": ["scrub", "drag-object", "probe"],
+  "prediction": {
+    "kind": "choose",
+    "prompt": "The input is LOW (0 V): the bottom hill is tall, the top hill is flat. Where does the output end up?",
+    "scored": true,
+    "conceptNodes": ["switch-logic"]
+  },
+  "targets": [
+    { "metric": "gain", "op": ">=", "value": 10, "label": "Gain ≥ 10 (levels regenerate)" },
+    { "metric": "nmLow_V", "op": ">=", "value": 0.29, "label": "Noise margin ≥ 290 mV" }
+  ],
+  "stars": { "metric": "gain", "direction": "max", "two": 15, "three": 30 },
+  "insets": [],
+  "conceptNodes": ["switch-logic", "potential-terrain", "boltzmann-tail"]
+}
